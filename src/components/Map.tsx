@@ -9,8 +9,8 @@ import useGeolocation from 'react-hook-geolocation';
 import geoCoder from '../utils/geocoder';
 import { Button } from '@material-ui/core';
 
-type PropsBase = {};
-export const defaultValue = {};
+type PropsBase = { apiKey: string };
+export const defaultValue = { apiKey: '' };
 const PropsDefault: Required<
   Pick<PropsBase, { [Key in keyof PropsBase]-?: Key }[keyof PropsBase]>
 > = defaultValue;
@@ -50,10 +50,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
     <Grid container>
       <Grid item container xl={8} lg={8} md={12} sm={12} xs={12}>
         <Grid item xl={12} lg={12} md={12} sm={12} xs={12}>
-          <LoadScript
-            id="script-loader"
-            googleMapsApiKey="AIzaSyCQaE6aW0tcCA-FeAouoxKB-7wFVvB34gM"
-          >
+          <LoadScript id="script-loader" googleMapsApiKey={props.apiKey}>
             <GoogleMap
               id="map"
               mapContainerStyle={{
@@ -68,7 +65,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
                     lat: event.latLng.lat(),
                     lng: event.latLng.lng()
                   };
-                  geoCoder.reverse(
+                  geoCoder(props.apiKey).reverse(
                     { lat: coordinates.lat, lon: coordinates.lng },
                     (error: any, result: any) => {
                       setMarkers([

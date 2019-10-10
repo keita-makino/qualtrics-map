@@ -1,8 +1,11 @@
 import NodeGeocoder from 'node-geocoder';
 
-const options = {
-  provider: 'google',
-  apiKey: 'AIzaSyCQaE6aW0tcCA-FeAouoxKB-7wFVvB34gM'
+const geocoder = (apiKey: string) => {
+  const options = {
+    provider: 'google',
+    apiKey: apiKey
+  };
+  return NodeGeocoder(options);
 };
 
-export default NodeGeocoder(options);
+export default geocoder;

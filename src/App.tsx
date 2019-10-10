@@ -1,10 +1,10 @@
 import React from 'react';
 import Map from './components/Map';
 
-const App: React.FC = () => {
+const App: React.FC<{ apiKey: string }> = props => {
   return (
     <>
-      <Map />
+      <Map apiKey={props.apiKey} />
     </>
   );
 };
