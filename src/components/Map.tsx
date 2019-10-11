@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Grid, Typography } from '@material-ui/core';
+import { Grid, Button } from '@material-ui/core';
 import {
   GoogleMap,
   LoadScript,
@@ -7,10 +7,17 @@ import {
 } from '@react-google-maps/api';
 import useGeolocation from 'react-hook-geolocation';
 import geoCoder from '../utils/geocoder';
-import { Button } from '@material-ui/core';
 
-type PropsBase = { apiKey: string };
-export const defaultValue = { apiKey: '' };
+type PropsBase = {
+  apiKey: string;
+  numPins: number;
+  returnType: string;
+};
+export const defaultValue = {
+  apiKey: '',
+  numPins: 1,
+  returnType: 'address'
+};
 const PropsDefault: Required<
   Pick<PropsBase, { [Key in keyof PropsBase]-?: Key }[keyof PropsBase]>
 > = defaultValue;
@@ -46,6 +53,10 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
     }
   }, [location.latitude, location.longitude]);
 
+  const inputs = document
+    .getElementsByClassName('ChoiceStructure')[0]
+    .getElementsByTagName('input');
+
   return (
     <Grid container>
       <Grid item container xl={8} lg={8} md={12} sm={12} xs={12}>
@@ -55,12 +66,12 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
               id="map"
               mapContainerStyle={{
                 width: '100%',
-                height: '45vh'
+                height: '60vh'
               }}
               zoom={15}
               center={center}
               onClick={(event: any) => {
-                if (markers.length < 2) {
+                if (markers.length < props.numPins) {
                   const coordinates = {
                     lat: event.latLng.lat(),
                     lng: event.latLng.lng()
@@ -68,6 +79,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
                   geoCoder(props.apiKey).reverse(
                     { lat: coordinates.lat, lon: coordinates.lng },
                     (error: any, result: any) => {
+                      inputs[markers.length].value = result[0].formattedAddress;
                       setMarkers([
                         ...markers,
                         {
@@ -75,9 +87,6 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
                           address: result[0].formattedAddress
                         }
                       ]);
-                      return (
-                        <Typography>result[0].formattedAddress</Typography>
-                      );
                     }
                   );
                 }
@@ -104,23 +113,12 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
             variant={'contained'}
             color={'primary'}
             onClick={() => {
+              [...inputs].map(item => (item.value = ''));
               setMarkers([] as Marker[]);
             }}
           >
             Clear Pin(s)
           </Button>
-        </Grid>
-      </Grid>
-      <Grid item container xl={4} lg={4} md={12} sm={12} xs={12}>
-        <Grid item xl={12} lg={12} md={12} sm={12} xs={12}>
-          {markers.length > 0 ? (
-            <>
-              <Typography>Selected Address:</Typography>
-              {markers.map((item: any) => (
-                <Typography>{item.address}</Typography>
-              ))}
-            </>
-          ) : null}
         </Grid>
       </Grid>
     </Grid>

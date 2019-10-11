@@ -5,7 +5,7 @@
   "main": "index.tsx",
   "scripts": {
     "start": "webpack-dev-server --open",
-    "build": "node_modules/.bin/webpack",
+    "build": "node_modules/.bin/webpack -p --mode=production",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -13,16 +13,15 @@
   ],
   "author": "keita-makino",
   "license": "MIT",
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "@types/node": "12.7.11",
     "@types/react": "16.9.5",
     "@types/react-dom": "16.9.1",
     "core-js": "^3.2.1",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",
-    "typescript": "3.6.3"
-  },
-  "devDependencies": {
+    "typescript": "3.6.3",
     "@babel/cli": "^7.6.2",
     "@babel/core": "^7.6.2",
     "@babel/preset-env": "^7.6.2",
@@ -34,6 +33,7 @@
     "@typescript-eslint/parser": "^2.3.3",
     "babel-eslint": "^10.0.3",
     "babel-loader": "^8.0.6",
+    "compression-webpack-plugin": "^3.0.0",
     "css-loader": "^3.2.0",
     "eslint": "^6.5.1",
     "eslint-config-prettier": "^6.4.0",
@@ -53,6 +53,7 @@
     "react-hook-geolocation": "^1.0.6",
     "style-loader": "^1.0.0",
     "webpack": "^4.41.0",
+    "webpack-bundle-analyzer": "^3.5.2",
     "webpack-cli": "^3.3.9",
     "webpack-dev-server": "^3.8.2"
   },

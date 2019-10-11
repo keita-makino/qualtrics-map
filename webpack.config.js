@@ -1,5 +1,8 @@
-var path = require('path');
-var HtmlWebpackPlugin = require('html-webpack-plugin');
+const path = require('path');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
+  .BundleAnalyzerPlugin;
+const CompressionPlugin = require('compression-webpack-plugin');
 
 module.exports = {
   entry: './src/index.tsx',
@@ -13,6 +16,16 @@ module.exports = {
     ]
   },
   resolve: { extensions: ['.ts', '.tsx', '.js', '.jsx'] },
+  plugins: [
+    new CompressionPlugin({
+      algorithm: 'gzip',
+      filename: '[path].gz[query]',
+      test: /\.(ts|js)x?$/,
+      compressionOptions: {
+        level: 9
+      }
+    })
+  ],
   output: {
     path: path.resolve(__dirname, 'dist/'),
     filename: 'bundle.js'
@@ -25,6 +38,7 @@ module.exports = {
   plugins: [
     new HtmlWebpackPlugin({
       template: 'public/index.html'
-    })
+    }),
+    new BundleAnalyzerPlugin()
   ]
 };
