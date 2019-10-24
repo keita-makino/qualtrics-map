@@ -8,16 +8,28 @@ const mapRender = (apiKey: string, returnType: string) => {
 
   document.getElementsByClassName('ChoiceStructure')[0].appendChild(container);
 
-  const numPins = document
-    .getElementsByClassName('ChoiceStructure')[0]
-    .getElementsByTagName('input').length;
+  const directionContainer = document.getElementsByClassName(
+    'ChoiceStructure'
+  )[0];
+
+  const labelArray = directionContainer.getElementsByTagName('label');
 
   ReactDOM.render(
     <>
-      <Map apiKey={apiKey} numPins={numPins} returnType={returnType} />
+      <Map
+        apiKey={apiKey}
+        numPins={labelArray.length}
+        returnType={returnType}
+        labels={[...labelArray].map(item => {
+          return item.children[0].textContent
+            ? item.children[0].textContent
+            : '';
+        })}
+      />
     </>,
     document.getElementById('MapContainer')
   );
+  (directionContainer.children[0] as HTMLElement).style.display = 'none';
 };
 
 (window as any).mapRender = mapRender;

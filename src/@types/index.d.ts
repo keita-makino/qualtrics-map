@@ -1,2 +1,3 @@
 declare module 'react-hook-geolocation';
-declare module 'node-geocoder';
+declare module 'react-geocode';
+declare module 'react-google-autocomplete';

@@ -1,11 +1,12 @@
-import NodeGeocoder from 'node-geocoder';
+import maps from '@google/maps';
 
 const geocoder = (apiKey: string) => {
-  const options = {
-    provider: 'google',
-    apiKey: apiKey
-  };
-  return NodeGeocoder(options);
+  const geocoder = maps.createClient({
+    key: apiKey,
+    Promise: Promise
+  });
+
+  return geocoder;
 };
 
 export default geocoder;
