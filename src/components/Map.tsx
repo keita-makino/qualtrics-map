@@ -53,10 +53,9 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
 
   const [addresses, setAddresses] = useState(Array(3).fill(''));
   const [center, setCenter] = useState({
-    lat: 35.45,
-    lng: 139.53
+    lat: 38.542096,
+    lng: -121.771202
   });
-  const [value, setValue] = useState('');
 
   useEffect(() => {
     if (location.latitude !== null) {
@@ -79,30 +78,58 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
     placePin(coordinates);
   };
 
-  const placePin = (coordinates: { lat: number; lng: number }, i?: number) => {
-    if (markers.filter(Boolean).length < props.numPins) {
-      const index = i ? i : markers.indexOf(undefined);
+  const setAddress = (index: number, address: string) => {
+    setAddresses(state => {
+      const newState = [...state];
+      newState[index] = address;
+      return newState;
+    });
+  };
 
-      inputs[index].value = JSON.stringify(coordinates);
-      setMarkers(state => {
-        const newState = [...state];
-        newState[index] = {
-          position: coordinates
-        };
-        return newState;
-      });
-      geoCoder(props.apiKey).reverseGeocode(
-        { latlng: { lat: coordinates.lat, lng: coordinates.lng } },
-        (error: any, result: any) => {
-          setAddresses(state => {
-            const newState = [...state];
-            newState[index] = result.json.results[index].formatted_address;
-            return newState;
-          });
-        }
-      );
-      console.log(markers);
-      console.log(addresses);
+  const placePin = (
+    _index?: number,
+    coordinates?: { lat: number; lng: number },
+    address?: string
+  ) => {
+    if (markers.filter(Boolean).length < props.numPins) {
+      const index = _index ? _index : markers.indexOf(undefined);
+
+      if (coordinates) {
+        inputs[index].value = JSON.stringify(coordinates);
+        setMarkers(state => {
+          const newState = [...state];
+          newState[index] = {
+            position: coordinates
+          };
+          return newState;
+        });
+        geoCoder(props.apiKey).reverseGeocode(
+          { latlng: { lat: coordinates.lat, lng: coordinates.lng } },
+          (error: any, result: any) => {
+            setAddresses(state => {
+              const newState = [...state];
+              newState[index] = result.json.results[index].formatted_address;
+              return newState;
+            });
+          }
+        );
+      } else {
+        geoCoder(props.apiKey).geocode(
+          {
+            address: address
+          },
+          (error: any, result: any) => {
+            console.log(result);
+            setMarkers(state => {
+              const newState = [...state];
+              newState[index] = {
+                position: result.json.results[0].geometry.location
+              };
+              return newState;
+            });
+          }
+        );
+      }
     }
   };
 
@@ -127,18 +154,15 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
                     });
                   }}
                   onPlaceChanged={() => {
-                    geoCoder(props.apiKey).geocode(
-                      {
-                        address: autocompletes[index].getPlace()
-                          .formatted_address
-                      },
-                      (error: any, result: any) => {
-                        setValue(result.json.results[0].formatted_address);
-                        placePin(
-                          result.json.results[0].geometry.location,
-                          index
-                        );
-                      }
+                    console.log(autocompletes[index].getPlace());
+                    setAddress(
+                      index,
+                      autocompletes[index].getPlace().formatted_address
+                    );
+                    placePin(
+                      index,
+                      null,
+                      autocompletes[index].getPlace().formatted_address
                     );
                   }}
                 >
@@ -147,11 +171,8 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
                     placeholder="Customized your placeholder"
                     value={addresses[index]}
                     onChange={({ target: { value } }) => {
-                      setAddresses(state => {
-                        const newState = [...state];
-                        newState[index] = value;
-                        return newState;
-                      });
+                      console.log(value);
+                      setAddress(index, value);
                     }}
                   />
                 </Autocomplete>
@@ -194,6 +215,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
             onClick={() => {
               [...inputs].map(item => (item.value = ''));
               setMarkers([] as Marker[]);
+              setAddresses([] as string[]);
             }}
             style={{
               color: 'white !important'
