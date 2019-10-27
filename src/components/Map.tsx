@@ -52,7 +52,8 @@ const useStyles = makeStyles({
         width: '100%'
       }
     },
-    padding: '0.3rem 0 0.3rem 0'
+    padding: '0.3rem 0 0.3rem 1rem',
+    maxWidth: '75%'
   },
   mapContainer: {
     paddingTop: '2rem',
@@ -174,6 +175,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
                 sm={12}
                 xs={12}
                 alignItems={'center'}
+                justify={'space-between'}
               >
                 {item}
                 <Box flexGrow={1} className={classes.autocompleteContainer}>
