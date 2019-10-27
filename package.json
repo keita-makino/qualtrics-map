@@ -9,7 +9,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "qualtrics"
+    "qualtrics",
+    "google maps"
   ],
   "author": "keita-makino",
   "license": "MIT",
