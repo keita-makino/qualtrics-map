@@ -8,8 +8,8 @@ const mapRender = (apiKey: string, returnType: string) => {
 
   document.getElementsByClassName('ChoiceStructure')[0].appendChild(container);
 
-  const directionContainer = document.getElementsByClassName(
-    'ChoiceStructure'
+  const directionContainer = document.querySelectorAll(
+    '[role*=presentation]'
   )[0];
 
   const labelArray = directionContainer.getElementsByTagName('label');
@@ -29,7 +29,7 @@ const mapRender = (apiKey: string, returnType: string) => {
     </>,
     document.getElementById('MapContainer')
   );
-  (directionContainer.children[0] as HTMLElement).style.display = 'none';
+  (directionContainer as HTMLElement).style.display = 'none';
 };
 
 (window as any).mapRender = mapRender;
