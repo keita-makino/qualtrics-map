@@ -67,7 +67,7 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 
 ## Use It
 
-1. The question that you want add the map has to be set as "Text Entry" question.
+1. The question that you want add the map has to be set as "Text Entry" + "Form" question.
 1. Add / remove text fields and set the field tag as you need. (e.g., Two text fields named "From:" and "To:").
 1. In the question, click the gear icon and then "Add Javascript..."
 1. Copy and paste the following code.
