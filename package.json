@@ -9,7 +9,8 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
-    "qualtrics"
+    "qualtrics",
+    "google maps"
   ],
   "author": "keita-makino",
   "license": "MIT",
@@ -48,7 +49,6 @@
     "husky": "^3.0.8",
     "license-checker": "^25.0.1",
     "lint-staged": "^9.4.1",
-    "node-geocoder": "^3.24.0",
     "prettier": "^1.18.2",
     "react": "^16.10.2",
     "react-dom": "^16.10.2",

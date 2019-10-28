@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { Grid, Button, Typography } from '@material-ui/core';
+import React, { useState, useEffect } from 'react';
+import { Grid, Button, Box, Typography } from '@material-ui/core';
 import {
   GoogleMap,
   LoadScript,
@@ -8,18 +8,15 @@ import {
 } from '@react-google-maps/api';
 import useGeolocation from 'react-hook-geolocation';
 import geoCoder from '../utils/geocoder';
+import { makeStyles } from '@material-ui/styles';
 
 type PropsBase = {
   apiKey: string;
-  numPins: number;
-  returnType: string;
-  labels: string[];
+  directionContainer: HTMLElement;
 };
 export const defaultValue = {
   apiKey: '',
-  numPins: 1,
-  returnType: 'address',
-  labels: []
+  directionContainer: {} as HTMLElement
 };
 const PropsDefault: Required<
   Pick<PropsBase, { [Key in keyof PropsBase]-?: Key }[keyof PropsBase]>
@@ -40,18 +37,49 @@ type Marker =
 
 const libraries = ['places'];
 
+const useStyles = makeStyles({
+  button: {
+    color: 'white !important'
+  },
+  autocompleteContainer: {
+    '& div': {
+      width: '100%',
+      '& input': {
+        width: '100%'
+      }
+    },
+    padding: '0.3rem 0 0.3rem 1rem',
+    maxWidth: '75%'
+  },
+  mapContainer: {
+    paddingTop: '2rem',
+    '& [aria-label *= "Street View Pegman Control"]': {
+      height: '30px !important'
+    }
+  }
+});
+
 const Map: React.FC<PropsBase> = (_props: PropsBase) => {
   const props = _props as Props;
+  const classes = useStyles();
   const location = useGeolocation();
 
+  const labels = [
+    ...props.directionContainer.getElementsByTagName('label')
+  ].map(item => {
+    return item.children[0].textContent ? item.children[0].textContent : '';
+  });
+  const numPins = labels.length;
+  const inputs = props.directionContainer.getElementsByTagName('input');
+
   const [markers, setMarkers] = useState(
-    Array<Marker>(props.numPins).fill(undefined)
+    Array<Marker>(numPins).fill(undefined)
   );
   const [autocompletes, setAutocompletes] = useState(
-    Array<any>(props.numPins).fill(undefined)
+    Array(numPins).fill(undefined)
   );
 
-  const [addresses, setAddresses] = useState(Array(3).fill(''));
+  const [addresses, setAddresses] = useState(Array(numPins).fill(''));
   const [center, setCenter] = useState({
     lat: 38.542096,
     lng: -121.771202
@@ -66,16 +94,12 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
     }
   }, [location.latitude, location.longitude]);
 
-  const inputs = document
-    .getElementsByClassName('ChoiceStructure')[0]
-    .getElementsByTagName('input');
-
-  const clickMap = (event: any) => {
+  const clickMap = (index: number | undefined, event: any) => {
     const coordinates = {
       lat: event.latLng.lat(),
       lng: event.latLng.lng()
     };
-    placePin(coordinates);
+    placePin(index, coordinates, undefined);
   };
 
   const setAddress = (index: number, address: string) => {
@@ -91,7 +115,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
     coordinates?: { lat: number; lng: number },
     address?: string
   ) => {
-    if (markers.filter(Boolean).length < props.numPins) {
+    if (markers.filter(Boolean).length < numPins) {
       const index = _index ? _index : markers.indexOf(undefined);
 
       if (coordinates) {
@@ -106,20 +130,18 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
         geoCoder(props.apiKey).reverseGeocode(
           { latlng: { lat: coordinates.lat, lng: coordinates.lng } },
           (error: any, result: any) => {
-            setAddresses(state => {
-              const newState = [...state];
-              newState[index] = result.json.results[index].formatted_address;
-              return newState;
-            });
+            setAddress(index, result.json.results[index].formatted_address);
           }
         );
-      } else {
+      } else if (address) {
         geoCoder(props.apiKey).geocode(
           {
             address: address
           },
           (error: any, result: any) => {
-            console.log(result);
+            inputs[index].value = JSON.stringify(
+              result.json.results[0].geometry.location
+            );
             setMarkers(state => {
               const newState = [...state];
               newState[index] = {
@@ -129,6 +151,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
             });
           }
         );
+        setAddress(index, address);
       }
     }
   };
@@ -140,89 +163,119 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
         googleMapsApiKey={props.apiKey}
         libraries={libraries}
       >
-        <Grid item container xl={8} lg={8} md={12} sm={12} xs={12}>
-          {props.labels.map((item: any, index: number) => {
+        <Grid item container xl={12} lg={12} md={12} sm={12} xs={12}>
+          {labels.map((item: any, index: number) => {
             return (
-              <Grid item container xl={8} lg={8} md={12} sm={12} xs={12}>
+              <Grid
+                item
+                container
+                xl={12}
+                lg={12}
+                md={12}
+                sm={12}
+                xs={12}
+                alignItems={'center'}
+                justify={'space-between'}
+              >
                 {item}
-                <Autocomplete
-                  onLoad={autocomplete => {
-                    setAutocompletes(state => {
-                      const newState = [...state];
-                      newState[index] = autocomplete;
-                      return newState;
-                    });
-                  }}
-                  onPlaceChanged={() => {
-                    console.log(autocompletes[index].getPlace());
-                    setAddress(
-                      index,
-                      autocompletes[index].getPlace().formatted_address
-                    );
-                    placePin(
-                      index,
-                      null,
-                      autocompletes[index].getPlace().formatted_address
-                    );
-                  }}
-                >
-                  <input
-                    type="text"
-                    placeholder="Customized your placeholder"
-                    value={addresses[index]}
-                    onChange={({ target: { value } }) => {
-                      console.log(value);
-                      setAddress(index, value);
+                <Box flexGrow={1} className={classes.autocompleteContainer}>
+                  <Autocomplete
+                    onLoad={autocomplete => {
+                      setAutocompletes(state => {
+                        const newState = [...state];
+                        newState[index] = autocomplete;
+                        return newState;
+                      });
                     }}
-                  />
-                </Autocomplete>
+                    onPlaceChanged={() => {
+                      placePin(
+                        index,
+                        undefined,
+                        autocompletes[index].getPlace().formatted_address
+                      );
+                    }}
+                  >
+                    <input
+                      type="text"
+                      placeholder="Search address or drop a pin on the map"
+                      value={addresses[index]}
+                      onChange={({ target: { value } }) => {
+                        setAddress(index, value);
+                      }}
+                    />
+                  </Autocomplete>
+                </Box>
               </Grid>
             );
           })}
         </Grid>
-        <Grid item container xl={8} lg={8} md={12} sm={12} xs={12}>
+        <Grid
+          item
+          container
+          xl={12}
+          lg={12}
+          md={12}
+          sm={12}
+          xs={12}
+          className={classes.mapContainer}
+        >
           <GoogleMap
             id="map"
+            clickableIcons={false}
             mapContainerStyle={{
               width: '100%',
               height: '60vh'
             }}
             zoom={15}
             center={center}
-            onClick={(event: any) => {
-              clickMap(event);
+            onClick={event => {
+              clickMap(undefined, event);
             }}
           >
-            {markers.filter(Boolean).map((item: Marker) => {
-              return <MapMarker position={item!.position} />;
+            {markers.map((item: Marker, index: number) => {
+              if (item) {
+                return (
+                  <MapMarker
+                    draggable={true}
+                    onDragEnd={event => {
+                      clickMap(index, event);
+                    }}
+                    position={item.position}
+                  />
+                );
+              } else {
+                return null;
+              }
             })}
           </GoogleMap>
         </Grid>
-        <Grid
-          item
-          container
-          justify={'center'}
-          xl={8}
-          lg={8}
-          md={12}
-          sm={12}
-          xs={12}
-          style={{ position: 'relative', top: '-3rem' }}
-        >
-          <Button
-            variant={'contained'}
-            color={'primary'}
-            onClick={() => {
-              [...inputs].map(item => (item.value = ''));
-              setMarkers([] as Marker[]);
-              setAddresses([] as string[]);
-            }}
-            style={{
-              color: 'white !important'
-            }}
+        <Grid container justify={'center'}>
+          <Grid
+            item
+            container
+            xl={6}
+            lg={6}
+            md={6}
+            sm={6}
+            xs={6}
+            justify={'center'}
+            style={{ position: 'relative', top: '-3rem' }}
           >
-            Clear Pin(s)
-          </Button>
+            <Button
+              variant={'contained'}
+              color={'primary'}
+              onClick={() => {
+                [...inputs].map(item => (item.value = ''));
+                setMarkers(Array<Marker>(numPins).fill(undefined));
+                addresses.map((item, index) => {
+                  setAddress(index, '');
+                });
+              }}
+              className={classes.button}
+            >
+              <Typography variant={'button'}>Clear Pin(s)</Typography>
+            </Button>
+          </Grid>
         </Grid>
       </LoadScript>
     </Grid>

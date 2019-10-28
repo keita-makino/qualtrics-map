@@ -2,34 +2,23 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Map from './components/Map';
 
-const mapRender = (apiKey: string, returnType: string) => {
+const mapRender = (apiKey: string, target: HTMLElement) => {
   const container = document.createElement('div');
-  container.setAttribute('id', 'MapContainer');
+  container.setAttribute('id', `MapContainer${target.id}`);
 
-  document.getElementsByClassName('ChoiceStructure')[0].appendChild(container);
+  target.getElementsByClassName('ChoiceStructure')[0].appendChild(container);
 
-  const directionContainer = document.getElementsByClassName(
-    'ChoiceStructure'
-  )[0];
-
-  const labelArray = directionContainer.getElementsByTagName('label');
+  const directionContainer = target.querySelectorAll(
+    '[role*=presentation]'
+  )[0] as HTMLElement;
 
   ReactDOM.render(
     <>
-      <Map
-        apiKey={apiKey}
-        numPins={labelArray.length}
-        returnType={returnType}
-        labels={[...labelArray].map(item => {
-          return item.children[0].textContent
-            ? item.children[0].textContent
-            : '';
-        })}
-      />
+      <Map apiKey={apiKey} directionContainer={directionContainer} />
     </>,
-    document.getElementById('MapContainer')
+    document.getElementById(`MapContainer${target.id}`)
   );
-  (directionContainer.children[0] as HTMLElement).style.display = 'none';
+  directionContainer.style.display = 'none';
 };
 
 (window as any).mapRender = mapRender;
