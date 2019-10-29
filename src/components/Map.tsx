@@ -115,9 +115,8 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
     coordinates?: { lat: number; lng: number },
     address?: string
   ) => {
-    if (markers.filter(Boolean).length < numPins) {
-      const index = _index !== undefined ? _index : markers.indexOf(undefined);
-
+    const index = _index !== undefined ? _index : markers.indexOf(undefined);
+    if (index < numPins && index !== -1) {
       if (coordinates) {
         inputs[index].value = JSON.stringify(coordinates);
         setMarkers(state => {

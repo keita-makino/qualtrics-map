@@ -81,7 +81,6 @@ Qualtrics.SurveyEngine.addOnload(function()
 
 Qualtrics.SurveyEngine.addOnReady(function()
 {
-	console.log(document.getElementById(this.questionId));
 	mapRender(apiKeyGoogleMap, document.getElementById(this.questionId));
 });
 ```
