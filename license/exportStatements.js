@@ -16,7 +16,7 @@ checker.init(
       console.log(error);
     } else {
       fs.writeFile(
-        './license/statements.json',
+        './license/statements_lfs.json',
         JSON.stringify(packages),
         error => {
           console.log(error);
