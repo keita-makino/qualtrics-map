@@ -6,7 +6,7 @@ import {
   Autocomplete,
   LoadScriptNext
 } from '@react-google-maps/api';
-import useGeolocation from 'react-hook-geolocation';
+import { useGeolocation } from 'react-use';
 import geoCoder from '../utils/geocoder';
 import { makeStyles } from '@material-ui/styles';
 
@@ -78,21 +78,27 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
   const [autocompletes, setAutocompletes] = useState(
     Array(numPins).fill(undefined)
   );
-
   const [addresses, setAddresses] = useState(Array(numPins).fill(''));
-  const [center, setCenter] = useState({
-    lat: 38.542096,
-    lng: -121.771202
+  const [map, setMap] = useState({
+    center: {
+      lat: 38.542096,
+      lng: -121.771202
+    },
+    zoom: 6
   });
 
-  useEffect(() => {
-    if (location.latitude !== null) {
-      setCenter({
-        lat: location.latitude,
-        lng: location.longitude
+  const initializeMap = (map: any) => {
+    if (location !== null) {
+      setMap({
+        ...map,
+        center: {
+          lat: location.latitude!,
+          lng: location.longitude!
+        },
+        zoom: 13
       });
     }
-  }, [location.latitude, location.longitude]);
+  };
 
   const clickMap = (index: number | undefined, event: any) => {
     const coordinates = {
@@ -103,7 +109,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
   };
 
   const setAddress = (index: number, address: string) => {
-    setAddresses(state => {
+    setAddresses((state: any) => {
       const newState = [...state];
       newState[index] = address;
       return newState;
@@ -119,7 +125,8 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
     if (index < numPins && index !== -1) {
       if (coordinates) {
         inputs[index].value = JSON.stringify(coordinates);
-        setMarkers(state => {
+        setMap({ ...map, center: coordinates });
+        setMarkers((state: any) => {
           const newState = [...state];
           newState[index] = {
             position: coordinates
@@ -138,10 +145,14 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
             address: address
           },
           (error: any, result: any) => {
+            setMap({
+              ...map,
+              center: result.json.results[0].geometry.location
+            });
             inputs[index].value = JSON.stringify(
               result.json.results[0].geometry.location
             );
-            setMarkers(state => {
+            setMarkers((state: any) => {
               const newState = [...state];
               newState[index] = {
                 position: result.json.results[0].geometry.location
@@ -180,8 +191,8 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
                   {item}
                   <Box flexGrow={1} className={classes.autocompleteContainer}>
                     <Autocomplete
-                      onLoad={autocomplete => {
-                        setAutocompletes(state => {
+                      onLoad={(autocomplete: any) => {
+                        setAutocompletes((state: any) => {
                           const newState = [...state];
                           newState[index] = autocomplete;
                           return newState;
@@ -226,20 +237,31 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
                 width: '100%',
                 height: '60vh'
               }}
-              zoom={15}
-              center={center}
-              onClick={event => {
+              zoom={map.zoom}
+              center={map.center}
+              onClick={(event: any) => {
                 clickMap(undefined, event);
+              }}
+              onLoad={(map: any) => {
+                initializeMap(map);
               }}
             >
               {markers.map((item: Marker, index: number) => {
                 if (item) {
+                  const label =
+                    labels[index] !== ''
+                      ? {
+                          text: labels[index],
+                          fontWeight: 'bold'
+                        }
+                      : null;
                   return (
                     <MapMarker
                       draggable={true}
-                      onDragEnd={event => {
+                      onDragEnd={(event: any) => {
                         clickMap(index, event);
                       }}
+                      label={label}
                       position={item.position}
                     />
                   );
@@ -267,7 +289,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
                 onClick={() => {
                   [...inputs].map(item => (item.value = ''));
                   setMarkers(Array<Marker>(numPins).fill(undefined));
-                  addresses.map((item, index) => {
+                  addresses.map((item: any, index: number) => {
                     setAddress(index, '');
                   });
                 }}
