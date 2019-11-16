@@ -58,9 +58,11 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 1. Copy the url of href attribute.
 1. Copy and paste the following code, replacing the `[apiKey]` and `[fileUrl]` with respectively the API key and the url.
 
-```
+```javascript
 <script>
-  var apiKeyGoogleMap = "[apiKey]";
+  var apiKeyGoogleMap = '[apiKey]';
+  var countryCode = '${loc://CountryCode}';
+  var postalCode = '${loc://PostalCode}';
 </script><br />
 <script src="[fileUrl]"></script>
 ```
@@ -73,14 +75,14 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 1. Copy and paste the following code.
 1. **All done!**
 
-```
-Qualtrics.SurveyEngine.addOnload(function()
-{
-	document.getElementById(this.questionId).querySelectorAll('[role*=presentation]')[0].style.display = "none";
+```javascript
+Qualtrics.SurveyEngine.addOnload(function() {
+  document
+    .getElementById(this.questionId)
+    .querySelectorAll('[role*=presentation]')[0].style.display = 'none';
 });
 
-Qualtrics.SurveyEngine.addOnReady(function()
-{
-	mapRender(apiKeyGoogleMap, document.getElementById(this.questionId));
+Qualtrics.SurveyEngine.addOnReady(function() {
+  mapRender(apiKeyGoogleMap, document.getElementById(this.questionId));
 });
 ```
