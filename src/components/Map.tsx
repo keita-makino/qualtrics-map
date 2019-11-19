@@ -63,8 +63,8 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
   const props = _props as Props;
   const classes = useStyles();
   const initialLocation: GeocodingRequest = {
-    region: (window as any).countryCode.address || 'US',
-    address: (window as any).postalCode.address || '95616'
+    region: (window as any).countryCode || 'US',
+    address: (window as any).postalCode || '95616'
   };
 
   const labels = [
@@ -86,7 +86,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
     lat: 37.542096,
     lng: -121.771202
   });
-  const [map, setMap] = useState({ zoom: 15 });
+  const [map, setMap] = useState({ zoom: 14 });
 
   useEffect(() => {
     geoCoder(props.apiKey).geocode(
