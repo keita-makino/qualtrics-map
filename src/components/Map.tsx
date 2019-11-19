@@ -9,6 +9,7 @@ import {
 import geoCoder from '../utils/geocoder';
 import { makeStyles } from '@material-ui/styles';
 import { GeocodingRequest } from '@google/maps';
+import { stringify } from 'querystring';
 
 type PropsBase = {
   apiKey: string;
@@ -89,6 +90,11 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
   const [map, setMap] = useState({ zoom: 14 });
 
   useEffect(() => {
+    [...inputs].map((item, index) => {
+      if (item.value !== '') {
+        placePin(index, JSON.parse(item.value), undefined);
+      }
+    });
     geoCoder(props.apiKey).geocode(
       initialLocation,
       (error: any, result: any) => {
