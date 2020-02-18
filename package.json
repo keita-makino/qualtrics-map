@@ -37,7 +37,7 @@
     "core-js": "3.2.1",
     "css-loader": "3.4.2",
     "eslint": "6.5.1",
-    "eslint-config-prettier": "6.4.0",
+    "eslint-config-prettier": "6.10.0",
     "eslint-config-react-app": "5.0.2",
     "eslint-plugin-flowtype": "4.3.0",
     "eslint-plugin-import": "2.18.2",
