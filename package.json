@@ -26,7 +26,7 @@
     "@babel/preset-typescript": "7.6.0",
     "@material-ui/core": "4.5.0",
     "@react-google-maps/api": "1.7.7",
-    "@types/node": "12.12.26",
+    "@types/node": "12.12.27",
     "@types/react": "16.9.19",
     "@types/react-dom": "16.9.5",
     "@typescript-eslint/eslint-plugin": "2.3.3",
