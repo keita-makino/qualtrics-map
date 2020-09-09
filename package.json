@@ -28,7 +28,7 @@
     "@react-google-maps/api": "1.8.3",
     "@types/node": "12.12.27",
     "@types/react": "16.9.49",
-    "@types/react-dom": "16.9.5",
+    "@types/react-dom": "16.9.8",
     "@typescript-eslint/eslint-plugin": "2.3.3",
     "@typescript-eslint/parser": "2.3.3",
     "babel-eslint": "10.1.0",
