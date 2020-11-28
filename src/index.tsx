@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+import { render } from 'react-dom';
 import Map from './components/Map';
 
 const mapRender = (apiKey: string, target: HTMLElement) => {
@@ -12,7 +12,7 @@ const mapRender = (apiKey: string, target: HTMLElement) => {
     '[role*=presentation]'
   )[0] as HTMLElement;
 
-  ReactDOM.render(
+  render(
     <>
       <Map apiKey={apiKey} directionContainer={directionContainer} />
     </>,

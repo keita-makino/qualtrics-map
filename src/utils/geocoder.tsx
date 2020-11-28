@@ -1,9 +1,9 @@
-import maps from '@google/maps';
+import { createClient } from '@google/maps';
 
 const geocoder = (apiKey: string) => {
-  const geocoder = maps.createClient({
+  const geocoder = createClient({
     key: apiKey,
-    Promise: Promise
+    Promise: Promise,
   });
 
   return geocoder;

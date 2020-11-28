@@ -4,11 +4,12 @@ import {
   GoogleMap,
   Marker as MapMarker,
   Autocomplete,
-  LoadScriptNext
+  LoadScriptNext,
 } from '@react-google-maps/api';
 import geoCoder from '../utils/geocoder';
 import { makeStyles } from '@material-ui/styles';
 import { GeocodingRequest } from '@google/maps';
+import { Libraries } from '@react-google-maps/api/dist/utils/make-load-script-url';
 
 type PropsBase = {
   apiKey: string;
@@ -16,7 +17,7 @@ type PropsBase = {
 };
 export const defaultValue = {
   apiKey: '',
-  directionContainer: {} as HTMLElement
+  directionContainer: {} as HTMLElement,
 };
 const PropsDefault: Required<
   Pick<PropsBase, { [Key in keyof PropsBase]-?: Key }[keyof PropsBase]>
@@ -35,41 +36,44 @@ type Marker =
     }
   | undefined;
 
-const libraries = ['places'];
+const libraries: Libraries = ['places'];
 
 const useStyles = makeStyles({
   button: {
-    color: 'white !important'
+    color: 'white !important',
   },
   autocompleteContainer: {
     '& div': {
       width: '100%',
       '& input': {
-        width: '100%'
-      }
+        width: '100%',
+      },
     },
     padding: '0.3rem 0 0.3rem 1rem',
-    maxWidth: '75%'
+    maxWidth: '75%',
   },
   mapContainer: {
     paddingTop: '2rem',
     '& [aria-label *= "Street View Pegman Control"]': {
-      height: '30px !important'
-    }
-  }
+      height: '30px !important',
+    },
+  },
 });
 
 const Map: React.FC<PropsBase> = (_props: PropsBase) => {
   const props = _props as Props;
   const classes = useStyles();
-  const initialLocation: GeocodingRequest = {
-    region: (window as any).countryCode || 'US',
-    address: (window as any).postalCode || '95616'
+  const initialLocation: () => GeocodingRequest = () => {
+    const region = (window as any).countryCode || 'US';
+    const address = (window as any).postalCode
+      ? `${region} ${(window as any).postalCode}`
+      : region;
+    return { address: address };
   };
 
   const labels = [
-    ...props.directionContainer.getElementsByTagName('label')
-  ].map(item => {
+    ...props.directionContainer.getElementsByTagName('label'),
+  ].map((item) => {
     return item.children[0].textContent ? item.children[0].textContent : '';
   });
   const numPins = labels.length;
@@ -84,7 +88,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
   const [addresses, setAddresses] = useState(Array(numPins).fill(''));
   const [center, setCenter] = useState({
     lat: 37.542096,
-    lng: -121.771202
+    lng: -121.771202,
   });
   const [map, setMap] = useState({ zoom: 14 });
 
@@ -95,7 +99,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
       }
     });
     geoCoder(props.apiKey).geocode(
-      initialLocation,
+      initialLocation(),
       (error: any, result: any) => {
         setCenter(result.json.results[0].geometry.location);
       }
@@ -105,7 +109,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
   const clickMap = (index: number | undefined, event: any) => {
     const coordinates = {
       lat: event.latLng.lat(),
-      lng: event.latLng.lng()
+      lng: event.latLng.lng(),
     };
     placePin(index, coordinates, undefined);
   };
@@ -128,10 +132,10 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
       if (coordinates) {
         inputs[index].value = JSON.stringify(coordinates);
         setCenter(coordinates);
-        setMarkers(state => {
+        setMarkers((state) => {
           const newState = [...state];
           newState[index] = {
-            position: coordinates
+            position: coordinates,
           };
           return newState;
         });
@@ -144,7 +148,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
       } else if (address) {
         geoCoder(props.apiKey).geocode(
           {
-            address: address
+            address: address,
           },
           (error: any, result: any) => {
             setCenter(result.json.results[0].geometry.location);
@@ -154,7 +158,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
             setMarkers((state: any) => {
               const newState = [...state];
               newState[index] = {
-                position: result.json.results[0].geometry.location
+                position: result.json.results[0].geometry.location,
               };
               return newState;
             });
@@ -234,14 +238,14 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
               clickableIcons={false}
               mapContainerStyle={{
                 width: '100%',
-                height: '60vh'
+                height: '60vh',
               }}
               zoom={map.zoom}
               center={center}
-              onClick={event => {
+              onClick={(event) => {
                 clickMap(undefined, event);
               }}
-              onLoad={map => {
+              onLoad={(map) => {
                 setMap(map);
               }}
             >
@@ -251,7 +255,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
                     labels[index] !== ''
                       ? {
                           text: labels[index],
-                          fontWeight: 'bold'
+                          fontWeight: 'bold',
                         }
                       : null;
                   return (
@@ -286,7 +290,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
                 variant={'contained'}
                 color={'primary'}
                 onClick={() => {
-                  [...inputs].map(item => (item.value = ''));
+                  [...inputs].map((item) => (item.value = ''));
                   setMarkers(Array<Marker>(numPins).fill(undefined));
                   addresses.map((item: any, index: number) => {
                     setAddress(index, '');
