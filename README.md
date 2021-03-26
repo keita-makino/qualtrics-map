@@ -45,18 +45,17 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 
 1. Go to the files library in Qualtrics.
 1. Upload the text file.
-1. Click the upload file and then "Edit" on the right-top.
-1. Select "Choose a new file from your computer" and upload the `bundle.js`.
+1. Click the gear icon at the right of the uploaded file and select "Rename File".
+1. Rename the file to `bundle.js` (change the extension).
+1. Select the uploaded file and click "View" button.
+1. Copy the URL of the file opened in the new window.
 
 ### Header Settings
 
-1. In the survey settings and click Look & Feel on the top.
+1. In the survey edit screen, click "Look & Feel" on right-top.
 1. Select "General" tab and then edit the "Header".
-1. In the editor, click the paper icon to insert the bundle file.
-1. Select `bundle.js`.
 1. Click the "<>" icon to enter coding-view.
-1. Copy the url of href attribute.
-1. Copy and paste the following code, replacing the `[apiKey]` and `[fileUrl]` with respectively the API key and the url.
+1. Copy and paste the following code, replacing the `[apiKey]` and `[fileUrl]` with respectively the API key and the URL of `bundle.js`.
 
 ```javascript
 <script>
@@ -76,13 +75,13 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 1. **All done!**
 
 ```javascript
-Qualtrics.SurveyEngine.addOnload(function() {
+Qualtrics.SurveyEngine.addOnload(function () {
   document
     .getElementById(this.questionId)
     .querySelectorAll('[role*=presentation]')[0].style.display = 'none';
 });
 
-Qualtrics.SurveyEngine.addOnReady(function() {
+Qualtrics.SurveyEngine.addOnReady(function () {
   mapRender(apiKeyGoogleMap, document.getElementById(this.questionId));
 });
 ```

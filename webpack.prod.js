@@ -8,8 +8,9 @@ module.exports = merge(common, {
   plugins: [
     new ProvidePlugin({
       process: 'process/browser',
-      Buffer: ['buffer', 'Buffer']
-    }),new HtmlWebpackPlugin({
+      Buffer: ['buffer', 'Buffer'],
+    }),
+    new HtmlWebpackPlugin({
       template: 'public/index.html',
     }),
   ],

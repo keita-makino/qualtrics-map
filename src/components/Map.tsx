@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Grid, Button, Box, Typography } from '@material-ui/core';
+import {
+  Grid,
+  Button,
+  Box,
+  Typography,
+  CircularProgress,
+} from '@material-ui/core';
 import {
   GoogleMap,
   Marker as MapMarker,
@@ -87,7 +93,6 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
   });
   const numPins = labels.length;
   const inputs = props.directionContainer.getElementsByTagName('input');
-  const [map, setMap] = useState({});
 
   const [markers, setMarkers] = useState(
     Array<Marker>(numPins).fill(undefined)
@@ -97,7 +102,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
   );
   const [addresses, setAddresses] = useState(Array(numPins).fill(''));
   const [center, setCenter] = useState(props.defaultLocation);
-  const { isLoaded } = useLoadScript({
+  const { isLoaded, loadError } = useLoadScript({
     googleMapsApiKey: props.apiKey,
     libraries,
   });
@@ -273,9 +278,6 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
             clickMap(undefined, event);
           }}
           zoom={14}
-          onLoad={(map) => {
-            setMap(map);
-          }}
         >
           {markers.map((item: Marker, index: number) => {
             if (item) {
@@ -333,7 +335,16 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
     </Grid>
   );
 
-  return isLoaded ? renderMapComponent() : <span>An error has occured.</span>;
+  return !isLoaded ? (
+    <span>Loading the map...</span>
+  ) : loadError ? (
+    <span>
+      Something went wrong. Please contact the survey administrator for
+      assistance.
+    </span>
+  ) : (
+    renderMapComponent()
+  );
 };
 Map.defaultProps = defaultValue;
 
