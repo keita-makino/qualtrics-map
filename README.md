@@ -37,7 +37,7 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 1. Clone or download the repository.
 1. `npm ci`
 1. `npm run build`
-1. Anywhere in your local environment, create an empty text file `bundle.txt`.
+1. Rename `bundle.js` to `bundle.txt`.
 
 ## Qualtrics Survey Settings
 
