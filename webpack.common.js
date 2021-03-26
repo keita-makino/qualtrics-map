@@ -1,8 +1,6 @@
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
   .BundleAnalyzerPlugin;
-const CompressionPlugin = require('compression-webpack-plugin');
 
 module.exports = {
   entry: './src/index.tsx',
@@ -27,17 +25,13 @@ module.exports = {
       buffer: require.resolve('buffer/'),
       http: require.resolve('stream-http'),
       stream: require.resolve('stream-browserify'),
+      os: require.resolve("os-browserify/browser"),
+      zlib: require.resolve("browserify-zlib"),
+      path: require.resolve("path-browserify"),
     },
   },
-  plugins: [new CompressionPlugin()],
   output: {
     path: path.resolve(__dirname, 'dist/'),
     filename: 'bundle.js',
-  },
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: 'public/index.html',
-    }),
-    // new BundleAnalyzerPlugin()
-  ],
+  }
 };

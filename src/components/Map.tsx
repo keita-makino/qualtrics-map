@@ -1,27 +1,29 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Grid, Button, Box, Typography } from '@material-ui/core';
 import {
   GoogleMap,
   Marker as MapMarker,
   Autocomplete,
-  LoadScriptNext,
+  useLoadScript,
 } from '@react-google-maps/api';
-import geoCoder from '../utils/geocoder';
 import { makeStyles } from '@material-ui/styles';
-import { GeocodingRequest } from '@google/maps';
-import { Libraries } from '@react-google-maps/api/dist/utils/make-load-script-url';
 
 type PropsBase = {
   apiKey: string;
   directionContainer: HTMLElement;
+  defaultLocation?: {
+    lat: number;
+    lng: number;
+  };
 };
-export const defaultValue = {
+export const defaultValue: Required<
+  Pick<PropsBase, { [Key in keyof PropsBase]-?: Key }[keyof PropsBase]>
+> = {
   apiKey: '',
   directionContainer: {} as HTMLElement,
+  defaultLocation: { lat: 38.540604, lng: -121.766941 },
 };
-const PropsDefault: Required<
-  Pick<PropsBase, { [Key in keyof PropsBase]-?: Key }[keyof PropsBase]>
-> = defaultValue;
+const PropsDefault = defaultValue;
 type Props = PropsBase & typeof PropsDefault;
 
 export { defaultValue as mapDefaultValue };
@@ -36,7 +38,13 @@ type Marker =
     }
   | undefined;
 
-const libraries: Libraries = ['places'];
+const libraries: (
+  | 'drawing'
+  | 'geometry'
+  | 'localContext'
+  | 'places'
+  | 'visualization'
+)[] = ['places'];
 
 const useStyles = makeStyles({
   button: {
@@ -61,9 +69,10 @@ const useStyles = makeStyles({
 });
 
 const Map: React.FC<PropsBase> = (_props: PropsBase) => {
+  const isCenterProvided = _props.defaultLocation !== undefined;
   const props = _props as Props;
   const classes = useStyles();
-  const initialLocation: () => GeocodingRequest = () => {
+  const initialLocation = () => {
     const region = (window as any).countryCode || 'US';
     const address = (window as any).postalCode
       ? `${region} ${(window as any).postalCode}`
@@ -78,6 +87,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
   });
   const numPins = labels.length;
   const inputs = props.directionContainer.getElementsByTagName('input');
+  const [map, setMap] = useState({});
 
   const [markers, setMarkers] = useState(
     Array<Marker>(numPins).fill(undefined)
@@ -86,11 +96,26 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
     Array(numPins).fill(undefined)
   );
   const [addresses, setAddresses] = useState(Array(numPins).fill(''));
-  const [center, setCenter] = useState({
-    lat: 37.542096,
-    lng: -121.771202,
+  const [center, setCenter] = useState(props.defaultLocation);
+  const { isLoaded } = useLoadScript({
+    googleMapsApiKey: props.apiKey,
+    libraries,
   });
-  const [map, setMap] = useState({ zoom: 14 });
+  const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
+
+  const initializeGeocoder = useCallback(() => {
+    const map = window?.google?.maps;
+
+    if (map) {
+      setGeocoder(new map.Geocoder());
+    }
+  }, []);
+
+  useEffect(() => {
+    if (isLoaded) {
+      initializeGeocoder();
+    }
+  }, [isLoaded, initializeGeocoder]);
 
   useEffect(() => {
     [...inputs].map((item, index) => {
@@ -98,13 +123,18 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
         placePin(index, JSON.parse(item.value), undefined);
       }
     });
-    geoCoder(props.apiKey).geocode(
-      initialLocation(),
-      (error: any, result: any) => {
-        setCenter(result.json.results[0].geometry.location);
-      }
-    );
   }, []);
+
+  useEffect(() => {
+    if (geocoder && !isCenterProvided) {
+      geocoder.geocode(initialLocation(), (results, status) => {
+        if (results) {
+          console.log(results[0].geometry.location.toJSON());
+          setCenter(results[0].geometry.location.toJSON());
+        }
+      });
+    }
+  }, [geocoder, isCenterProvided]);
 
   const clickMap = (index: number | undefined, event: any) => {
     const coordinates = {
@@ -129,7 +159,7 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
   ) => {
     const index = _index !== undefined ? _index : markers.indexOf(undefined);
     if (index < numPins && index !== -1) {
-      if (coordinates) {
+      if (coordinates && geocoder) {
         inputs[index].value = JSON.stringify(coordinates);
         setCenter(coordinates);
         setMarkers((state) => {
@@ -139,29 +169,33 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
           };
           return newState;
         });
-        geoCoder(props.apiKey).reverseGeocode(
-          { latlng: { lat: coordinates.lat, lng: coordinates.lng } },
-          (error: any, result: any) => {
-            setAddress(index, result.json.results[index].formatted_address);
+        geocoder.geocode(
+          { location: { lat: coordinates.lat, lng: coordinates.lng } },
+          (results, status) => {
+            if (results) {
+              setAddress(index, results[0].formatted_address);
+            }
           }
         );
-      } else if (address) {
-        geoCoder(props.apiKey).geocode(
+      } else if (address && geocoder) {
+        geocoder.geocode(
           {
             address: address,
           },
-          (error: any, result: any) => {
-            setCenter(result.json.results[0].geometry.location);
-            inputs[index].value = JSON.stringify(
-              result.json.results[0].geometry.location
-            );
-            setMarkers((state: any) => {
-              const newState = [...state];
-              newState[index] = {
-                position: result.json.results[0].geometry.location,
-              };
-              return newState;
-            });
+          (results, status) => {
+            if (results) {
+              setCenter(results[0].geometry.location.toJSON());
+              inputs[index].value = JSON.stringify(
+                results[0].geometry.location.toJSON()
+              );
+              setMarkers((state: any) => {
+                const newState = [...state];
+                newState[index] = {
+                  position: results[0].geometry.location.toJSON(),
+                };
+                return newState;
+              });
+            }
           }
         );
         setAddress(index, address);
@@ -169,143 +203,137 @@ const Map: React.FC<PropsBase> = (_props: PropsBase) => {
     }
   };
 
-  return (
+  const renderMapComponent = () => (
     <Grid container>
-      <LoadScriptNext
-        id="script-loader"
-        googleMapsApiKey={props.apiKey}
-        libraries={libraries}
-      >
-        <>
-          <Grid item container xl={12} lg={12} md={12} sm={12} xs={12}>
-            {labels.map((item: any, index: number) => {
-              return (
-                <Grid
-                  item
-                  container
-                  xl={12}
-                  lg={12}
-                  md={12}
-                  sm={12}
-                  xs={12}
-                  alignItems={'center'}
-                  justify={'space-between'}
-                >
-                  {item}
-                  <Box flexGrow={1} className={classes.autocompleteContainer}>
-                    <Autocomplete
-                      onLoad={(autocomplete: any) => {
-                        setAutocompletes((state: any) => {
-                          const newState = [...state];
-                          newState[index] = autocomplete;
-                          return newState;
-                        });
-                      }}
-                      onPlaceChanged={() => {
-                        placePin(
-                          index,
-                          undefined,
-                          autocompletes[index].getPlace().formatted_address
-                        );
-                      }}
-                    >
-                      <input
-                        type="text"
-                        placeholder="Search address or drop a pin on the map"
-                        value={addresses[index]}
-                        onChange={({ target: { value } }) => {
-                          setAddress(index, value);
-                        }}
-                      />
-                    </Autocomplete>
-                  </Box>
-                </Grid>
-              );
-            })}
-          </Grid>
-          <Grid
-            item
-            container
-            xl={12}
-            lg={12}
-            md={12}
-            sm={12}
-            xs={12}
-            className={classes.mapContainer}
-          >
-            <GoogleMap
-              id="map"
-              clickableIcons={false}
-              mapContainerStyle={{
-                width: '100%',
-                height: '60vh',
-              }}
-              zoom={map.zoom}
-              center={center}
-              onClick={(event) => {
-                clickMap(undefined, event);
-              }}
-              onLoad={(map) => {
-                setMap(map);
-              }}
-            >
-              {markers.map((item: Marker, index: number) => {
-                if (item) {
-                  const label =
-                    labels[index] !== ''
-                      ? {
-                          text: labels[index],
-                          fontWeight: 'bold',
-                        }
-                      : null;
-                  return (
-                    <MapMarker
-                      draggable={true}
-                      onDragEnd={(event: any) => {
-                        clickMap(index, event);
-                      }}
-                      label={label}
-                      position={item.position}
-                    />
-                  );
-                } else {
-                  return null;
-                }
-              })}
-            </GoogleMap>
-          </Grid>
-          <Grid container justify={'center'}>
+      <Grid item container xl={12} lg={12} md={12} sm={12} xs={12}>
+        {labels.map((item: any, index: number) => {
+          return (
             <Grid
               item
               container
-              xl={6}
-              lg={6}
-              md={6}
-              sm={6}
-              xs={6}
-              justify={'center'}
-              style={{ position: 'relative', top: '-3rem' }}
+              xl={12}
+              lg={12}
+              md={12}
+              sm={12}
+              xs={12}
+              alignItems={'center'}
+              justify={'space-between'}
             >
-              <Button
-                variant={'contained'}
-                color={'primary'}
-                onClick={() => {
-                  [...inputs].map((item) => (item.value = ''));
-                  setMarkers(Array<Marker>(numPins).fill(undefined));
-                  addresses.map((item: any, index: number) => {
-                    setAddress(index, '');
-                  });
-                }}
-                className={classes.button}
-              >
-                <Typography variant={'button'}>Clear Pin(s)</Typography>
-              </Button>
+              {item}
+              <Box flexGrow={1} className={classes.autocompleteContainer}>
+                <Autocomplete
+                  onLoad={(autocomplete: any) => {
+                    setAutocompletes((state: any) => {
+                      const newState = [...state];
+                      newState[index] = autocomplete;
+                      return newState;
+                    });
+                  }}
+                  onPlaceChanged={() => {
+                    placePin(
+                      index,
+                      undefined,
+                      autocompletes[index].getPlace().formatted_address
+                    );
+                  }}
+                >
+                  <input
+                    type="text"
+                    placeholder="Search address or drop a pin on the map"
+                    value={addresses[index]}
+                    onChange={({ target: { value } }) => {
+                      setAddress(index, value);
+                    }}
+                  />
+                </Autocomplete>
+              </Box>
             </Grid>
-          </Grid>
-        </>
-      </LoadScriptNext>
+          );
+        })}
+      </Grid>
+      <Grid
+        item
+        container
+        xl={12}
+        lg={12}
+        md={12}
+        sm={12}
+        xs={12}
+        className={classes.mapContainer}
+      >
+        <GoogleMap
+          id="map"
+          clickableIcons={false}
+          mapContainerStyle={{
+            width: '100%',
+            height: '60vh',
+          }}
+          center={center}
+          onClick={(event) => {
+            clickMap(undefined, event);
+          }}
+          zoom={14}
+          onLoad={(map) => {
+            setMap(map);
+          }}
+        >
+          {markers.map((item: Marker, index: number) => {
+            if (item) {
+              const label: google.maps.MarkerLabel | null =
+                labels[index] !== ''
+                  ? {
+                      text: labels[index],
+                      fontWeight: 'bold',
+                    }
+                  : null;
+              return (
+                <MapMarker
+                  draggable={true}
+                  onDragEnd={(event: any) => {
+                    clickMap(index, event);
+                  }}
+                  label={label || undefined}
+                  position={item.position}
+                />
+              );
+            } else {
+              return null;
+            }
+          })}
+        </GoogleMap>
+      </Grid>
+      <Grid container justify={'center'}>
+        <Grid
+          item
+          container
+          xl={6}
+          lg={6}
+          md={6}
+          sm={6}
+          xs={6}
+          justify={'center'}
+          style={{ position: 'relative', top: '-3rem' }}
+        >
+          <Button
+            variant={'contained'}
+            color={'primary'}
+            onClick={() => {
+              [...inputs].map((item) => (item.value = ''));
+              setMarkers(Array<Marker>(numPins).fill(undefined));
+              addresses.map((item: any, index: number) => {
+                setAddress(index, '');
+              });
+            }}
+            className={classes.button}
+          >
+            <Typography variant={'button'}>Clear Pin(s)</Typography>
+          </Button>
+        </Grid>
+      </Grid>
     </Grid>
   );
+
+  return isLoaded ? renderMapComponent() : <span>An error has occured.</span>;
 };
 Map.defaultProps = defaultValue;
 
