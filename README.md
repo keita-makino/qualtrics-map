@@ -71,7 +71,8 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 1. The question that you want add the map has to be set as "Text Entry" + "Form" question.
 1. Add / remove text fields and set the field tag as you need. (e.g., Two text fields named "From:" and "To:").
 1. In the question, click the gear icon and then "Add Javascript..."
-1. Copy and paste the following code.
+1. Use the following code.
+1. If you need to set a default center location, use the latter one (requires `>=1.2.0`).
 1. **All done!**
 
 ```javascript
@@ -83,5 +84,13 @@ Qualtrics.SurveyEngine.addOnload(function () {
 
 Qualtrics.SurveyEngine.addOnReady(function () {
   mapRender(apiKeyGoogleMap, document.getElementById(this.questionId));
+});
+
+// If you need to set a default center
+Qualtrics.SurveyEngine.addOnReady(function () {
+  mapRender(apiKeyGoogleMap, document.getElementById(this.questionId), {
+    lat: 50,
+    lng: -100,
+  });
 });
 ```
