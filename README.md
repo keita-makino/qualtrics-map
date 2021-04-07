@@ -18,7 +18,7 @@ A react-based component that displays an embedded Google Maps in [Qualtrics](htt
 
 ## Google Maps API
 
-This library uses Google Maps [Javascript API](https://developers.google.com/maps/documentation/javascript/tutorial) and [Places API](https://developers.google.com/places/web-service/intro).  
+This library uses Google [Geocoding API](https://developers.google.com/maps/documentation/geocoding/overview), [Maps Javascript API](https://developers.google.com/maps/documentation/javascript/tutorial), and [Places API](https://developers.google.com/places/web-service/intro).  
 Make sure you have a key to access those APIs.
 
 ## Get bundle.js
