@@ -45,7 +45,7 @@
     "babel-loader": "8.2.2",
     "compression-webpack-plugin": "7.1.2",
     "core-js": "3.9.1",
-    "css-loader": "5.2.0",
+    "css-loader": "5.2.7",
     "eslint": "7.22.0",
     "eslint-config-prettier": "8.1.0",
     "eslint-config-react-app": "6.0.0",
