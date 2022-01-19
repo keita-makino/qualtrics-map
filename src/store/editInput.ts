@@ -15,6 +15,7 @@ export const editInput = (
     if (state.geocoder) {
       if (input.location) {
         state.view.location = input.location;
+        state.inputs[index].htmlElement!.value = JSON.stringify(input.location);
       }
       state.inputs[index].location = input.location;
       state.inputs[index].address = input.address;
