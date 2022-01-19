@@ -1,6 +1,3 @@
-const path = require('path');
-const BundleAnalyzerPlugin = require('webpack-bundle-analyzer')
-  .BundleAnalyzerPlugin;
 const TerserPlugin = require('terser-webpack-plugin');
 
 module.exports = {
@@ -30,10 +27,6 @@ module.exports = {
       zlib: require.resolve('browserify-zlib'),
       path: require.resolve('path-browserify'),
     },
-  },
-  output: {
-    path: path.resolve(__dirname, 'dist/'),
-    filename: 'bundle.txt',
   },
   optimization: {
     minimize: true,
