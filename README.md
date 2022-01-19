@@ -46,7 +46,6 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 1. Go to the files library in Qualtrics.
 1. Upload the text file.
 1. Click the gear icon at the right of the uploaded file and select "Rename File".
-1. Rename the file to `bundle.js` (change the extension).
 1. Select the uploaded file and click "View" button.
 1. Copy the URL of the file opened in the new window.
 
@@ -55,7 +54,7 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 1. In the survey edit screen, click "Look & Feel" on right-top.
 1. Select "General" tab and then edit the "Header".
 1. Click the "<>" icon to enter coding-view.
-1. Copy and paste the following code, replacing the `[apiKey]` and `[fileUrl]` with respectively the API key and the URL of `bundle.js`.
+1. Copy and paste the following code, replacing the `[apiKey]` and `[fileUrl]` with respectively the API key and the URL of `bundle.txt`.
 
 ```javascript
 <script>
@@ -72,7 +71,7 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 1. Add / remove text fields and set the field tag as you need. (e.g., Two text fields named "From:" and "To:").
 1. In the question, click the gear icon and then "Add Javascript..."
 1. Use the following code.
-1. If you need to set a default center location, use the latter one (requires `>=1.2.0`).
+1. If you need to set a default center location, use the latter one.
 1. **All done!**
 
 ```javascript
@@ -89,8 +88,11 @@ Qualtrics.SurveyEngine.addOnReady(function () {
 // If you need to set a default center
 Qualtrics.SurveyEngine.addOnReady(function () {
   mapRender(apiKeyGoogleMap, document.getElementById(this.questionId), {
-    lat: 50,
-    lng: -100,
+    location: {
+      lat: 50,
+      lng: -100,
+    },
+    zoom: 12, // Optional
   });
 });
 ```

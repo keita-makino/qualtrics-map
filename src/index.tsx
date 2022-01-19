@@ -1,11 +1,15 @@
 import React from 'react';
 import { render } from 'react-dom';
-import Map from './components/Map';
+import { Container } from './components';
+import { Provider } from './store';
 
 const mapRender = (
   apiKey: string,
   target: HTMLElement,
-  center?: { lat: number; lng: number }
+  defaultView?: {
+    location: { lat: number; lng: number };
+    zoom: number;
+  }
 ) => {
   const container = document.createElement('div');
   container.setAttribute('id', `MapContainer${target.id}`);
@@ -17,13 +21,13 @@ const mapRender = (
   )[0] as HTMLElement;
 
   render(
-    <>
-      <Map
+    <Provider>
+      <Container
         apiKey={apiKey}
         directionContainer={directionContainer}
-        defaultLocation={center}
+        view={defaultView}
       />
-    </>,
+    </Provider>,
     document.getElementById(`MapContainer${target.id}`)
   );
   directionContainer.style.display = 'none';

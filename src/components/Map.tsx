@@ -1,56 +1,8 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import {
-  Grid,
-  Button,
-  Box,
-  Typography,
-  CircularProgress,
-} from '@material-ui/core';
-import {
-  GoogleMap,
-  Marker as MapMarker,
-  Autocomplete,
-  useLoadScript,
-} from '@react-google-maps/api';
-import { makeStyles } from '@material-ui/styles';
-
-type PropsBase = {
-  apiKey: string;
-  directionContainer: HTMLElement;
-  defaultLocation?: {
-    lat: number;
-    lng: number;
-  };
-};
-export const defaultValue: Required<
-  Pick<PropsBase, { [Key in keyof PropsBase]-?: Key }[keyof PropsBase]>
-> = {
-  apiKey: '',
-  directionContainer: {} as HTMLElement,
-  defaultLocation: { lat: 38.540604, lng: -121.766941 },
-};
-const PropsDefault = defaultValue;
-type Props = PropsBase & typeof PropsDefault;
-
-export { defaultValue as mapDefaultValue };
-export type mapProps = Props;
-
-type Marker =
-  | {
-      position: {
-        lat: number;
-        lng: number;
-      };
-    }
-  | undefined;
-
-const libraries: (
-  | 'drawing'
-  | 'geometry'
-  | 'localContext'
-  | 'places'
-  | 'visualization'
-)[] = ['places'];
+import { Grid, makeStyles } from '@material-ui/core';
+import { GoogleMap, Marker as MapMarker } from '@react-google-maps/api';
+import React, { useContext, useEffect } from 'react';
+import { useTrackedState, useUpdate } from '../store';
+import { Input } from '../types/Input';
 
 const useStyles = makeStyles({
   button: {
@@ -74,278 +26,99 @@ const useStyles = makeStyles({
   },
 });
 
-const Map: React.FC<PropsBase> = (_props: PropsBase) => {
-  const isCenterProvided = _props.defaultLocation !== undefined;
-  const props = _props as Props;
+export const Map: React.FC = () => {
   const classes = useStyles();
-  const initialLocation = () => {
-    const region = (window as any).countryCode || 'US';
-    const address = (window as any).postalCode
-      ? `${region} ${(window as any).postalCode}`
-      : region;
-    return { address: address };
-  };
-
-  const labels = [
-    ...props.directionContainer.getElementsByTagName('label'),
-  ].map((item) => {
-    return item.children[0].textContent ? item.children[0].textContent : '';
-  });
-  const numPins = labels.length;
-  const inputs = props.directionContainer.getElementsByTagName('input');
-
-  const [markers, setMarkers] = useState(
-    Array<Marker>(numPins).fill(undefined)
-  );
-  const [autocompletes, setAutocompletes] = useState(
-    Array(numPins).fill(undefined)
-  );
-  const [addresses, setAddresses] = useState(Array(numPins).fill(''));
-  const [center, setCenter] = useState(props.defaultLocation);
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: props.apiKey,
-    libraries,
-  });
-  const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
-
-  const initializeGeocoder = useCallback(() => {
-    const map = window?.google?.maps;
-
-    if (map) {
-      setGeocoder(new map.Geocoder());
-    }
-  }, []);
+  const update = useUpdate();
+  const state = useTrackedState();
 
   useEffect(() => {
-    if (isLoaded) {
-      initializeGeocoder();
-    }
-  }, [isLoaded, initializeGeocoder]);
+    const inputIndexForAddressUpdate = state.inputs.findIndex(
+      (item) => item.location && !item.address
+    );
 
-  useEffect(() => {
-    [...inputs].map((item, index) => {
-      if (item.value !== '') {
-        placePin(index, JSON.parse(item.value), undefined);
-      }
-    });
-  }, []);
-
-  useEffect(() => {
-    if (geocoder && !isCenterProvided) {
-      geocoder.geocode(initialLocation(), (results, status) => {
-        if (results) {
-          console.log(results[0].geometry.location.toJSON());
-          setCenter(results[0].geometry.location.toJSON());
+    if (inputIndexForAddressUpdate > -1 && state.geocoder) {
+      const inputForAddressUpdate = state.inputs[inputIndexForAddressUpdate];
+      state.geocoder.geocode(
+        { location: inputForAddressUpdate.location },
+        (results, status) => {
+          if (results) {
+            update({
+              type: 'EDIT_INPUT',
+              input: {
+                ...inputForAddressUpdate,
+                address: results[0].formatted_address,
+              },
+              index: inputIndexForAddressUpdate,
+            });
+          }
         }
-      });
+      );
     }
-  }, [geocoder, isCenterProvided]);
+  });
 
-  const clickMap = (index: number | undefined, event: any) => {
-    const coordinates = {
-      lat: event.latLng.lat(),
-      lng: event.latLng.lng(),
-    };
-    placePin(index, coordinates, undefined);
-  };
-
-  const setAddress = (index: number, address: string) => {
-    setAddresses((state: any) => {
-      const newState = [...state];
-      newState[index] = address;
-      return newState;
-    });
-  };
-
-  const placePin = (
-    _index?: number,
-    coordinates?: { lat: number; lng: number },
-    address?: string
-  ) => {
-    const index = _index !== undefined ? _index : markers.indexOf(undefined);
-    if (index < numPins && index !== -1) {
-      if (coordinates && geocoder) {
-        inputs[index].value = JSON.stringify(coordinates);
-        setCenter(coordinates);
-        setMarkers((state) => {
-          const newState = [...state];
-          newState[index] = {
-            position: coordinates,
+  return (
+    <Grid
+      item
+      container
+      xl={12}
+      lg={12}
+      md={12}
+      sm={12}
+      xs={12}
+      className={classes.mapContainer}
+    >
+      <GoogleMap
+        id="map"
+        clickableIcons={false}
+        mapContainerStyle={{
+          width: '100%',
+          height: '60vh',
+        }}
+        center={state.view.location}
+        onClick={(event) => {
+          const coordinates = {
+            lat: event!.latLng!.lat(),
+            lng: event!.latLng!.lng(),
           };
-          return newState;
-        });
-        geocoder.geocode(
-          { location: { lat: coordinates.lat, lng: coordinates.lng } },
-          (results, status) => {
-            if (results) {
-              setAddress(index, results[0].formatted_address);
-            }
-          }
-        );
-      } else if (address && geocoder) {
-        geocoder.geocode(
-          {
-            address: address,
-          },
-          (results, status) => {
-            if (results) {
-              setCenter(results[0].geometry.location.toJSON());
-              inputs[index].value = JSON.stringify(
-                results[0].geometry.location.toJSON()
-              );
-              setMarkers((state: any) => {
-                const newState = [...state];
-                newState[index] = {
-                  position: results[0].geometry.location.toJSON(),
-                };
-                return newState;
-              });
-            }
-          }
-        );
-        setAddress(index, address);
-      }
-    }
-  };
-
-  const renderMapComponent = () => (
-    <Grid container>
-      <Grid item container xl={12} lg={12} md={12} sm={12} xs={12}>
-        {labels.map((item: any, index: number) => {
-          return (
-            <Grid
-              item
-              container
-              xl={12}
-              lg={12}
-              md={12}
-              sm={12}
-              xs={12}
-              alignItems={'center'}
-              justify={'space-between'}
-            >
-              {item}
-              <Box flexGrow={1} className={classes.autocompleteContainer}>
-                <Autocomplete
-                  onLoad={(autocomplete: any) => {
-                    setAutocompletes((state: any) => {
-                      const newState = [...state];
-                      newState[index] = autocomplete;
-                      return newState;
-                    });
-                  }}
-                  onPlaceChanged={() => {
-                    placePin(
-                      index,
-                      undefined,
-                      autocompletes[index].getPlace().formatted_address
-                    );
-                  }}
-                >
-                  <input
-                    type="text"
-                    placeholder="Search address or drop a pin on the map"
-                    value={addresses[index]}
-                    onChange={({ target: { value } }) => {
-                      setAddress(index, value);
-                    }}
-                  />
-                </Autocomplete>
-              </Box>
-            </Grid>
-          );
-        })}
-      </Grid>
-      <Grid
-        item
-        container
-        xl={12}
-        lg={12}
-        md={12}
-        sm={12}
-        xs={12}
-        className={classes.mapContainer}
+          update({
+            type: 'EDIT_INPUT',
+            input: { label: 'Clicked location', location: coordinates },
+          });
+        }}
+        zoom={14}
       >
-        <GoogleMap
-          id="map"
-          clickableIcons={false}
-          mapContainerStyle={{
-            width: '100%',
-            height: '60vh',
-          }}
-          center={center}
-          onClick={(event) => {
-            clickMap(undefined, event);
-          }}
-          zoom={14}
-        >
-          {markers.map((item: Marker, index: number) => {
-            if (item) {
-              const label: google.maps.MarkerLabel | null =
-                labels[index] !== ''
-                  ? {
-                      text: labels[index],
-                      fontWeight: 'bold',
-                    }
-                  : null;
-              return (
-                <MapMarker
-                  draggable={true}
-                  onDragEnd={(event: any) => {
-                    clickMap(index, event);
-                  }}
-                  label={label || undefined}
-                  position={item.position}
-                />
-              );
-            } else {
-              return null;
-            }
-          })}
-        </GoogleMap>
-      </Grid>
-      <Grid container justify={'center'}>
-        <Grid
-          item
-          container
-          xl={6}
-          lg={6}
-          md={6}
-          sm={6}
-          xs={6}
-          justify={'center'}
-          style={{ position: 'relative', top: '-3rem' }}
-        >
-          <Button
-            variant={'contained'}
-            color={'primary'}
-            onClick={() => {
-              [...inputs].map((item) => (item.value = ''));
-              setMarkers(Array<Marker>(numPins).fill(undefined));
-              addresses.map((item: any, index: number) => {
-                setAddress(index, '');
-              });
-            }}
-            className={classes.button}
-          >
-            <Typography variant={'button'}>Clear Pin(s)</Typography>
-          </Button>
-        </Grid>
-      </Grid>
+        {state.inputs.map((item: Input, index: number) => {
+          if (item.location) {
+            const label: google.maps.MarkerLabel | null =
+              state.inputs[index].label !== ''
+                ? {
+                    text: state.inputs[index].label,
+                    fontWeight: 'bold',
+                  }
+                : null;
+            return (
+              <MapMarker
+                draggable={true}
+                onDragEnd={(event: any) => {
+                  const coordinates = {
+                    lat: event.latLng.lat(),
+                    lng: event.latLng.lng(),
+                  };
+                  update({
+                    type: 'EDIT_INPUT',
+                    index: index,
+                    input: { label: 'Clicked location', location: coordinates },
+                  });
+                }}
+                label={label || undefined}
+                position={item.location}
+              />
+            );
+          } else {
+            return null;
+          }
+        })}
+      </GoogleMap>
     </Grid>
   );
-
-  return !isLoaded ? (
-    <span>Loading the map...</span>
-  ) : loadError ? (
-    <span>
-      Something went wrong. Please contact the survey administrator for
-      assistance.
-    </span>
-  ) : (
-    renderMapComponent()
-  );
 };
-Map.defaultProps = defaultValue;
-
-export default Map;
