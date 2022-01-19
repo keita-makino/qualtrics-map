@@ -46,7 +46,7 @@
     "compression-webpack-plugin": "7.1.2",
     "core-js": "3.9.1",
     "css-loader": "5.2.0",
-    "eslint": "7.22.0",
+    "eslint": "7.32.0",
     "eslint-config-prettier": "8.1.0",
     "eslint-config-react-app": "6.0.0",
     "eslint-plugin-flowtype": "5.4.0",
