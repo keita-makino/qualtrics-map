@@ -21,9 +21,9 @@ A react-based component that displays an embedded Google Maps in [Qualtrics](htt
 This library uses Google [Geocoding API](https://developers.google.com/maps/documentation/geocoding/overview), [Maps Javascript API](https://developers.google.com/maps/documentation/javascript/tutorial), and [Places API](https://developers.google.com/places/web-service/intro).  
 Make sure you have a key to access those APIs.
 
-## Get bundle.js
+## Get bundle.txt
 
-There are two ways to obtain your `bundle.js`. Choose one way as your needs and then proceed to "Qualtrics Survey Settings".
+There are two ways to obtain your `bundle.txt`. Choose one way as your needs and then proceed to "Qualtrics Survey Settings".
 
 ### Using Template
 
@@ -37,7 +37,6 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 1. Clone or download the repository.
 1. `npm ci`
 1. `npm run build`
-1. Rename `bundle.js` to `bundle.txt`.
 
 ## Qualtrics Survey Settings
 
