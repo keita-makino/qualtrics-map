@@ -1,4 +1,5 @@
 const TerserPlugin = require('terser-webpack-plugin');
+const path = require('path');
 
 module.exports = {
   entry: './src/index.tsx',
@@ -10,6 +11,10 @@ module.exports = {
         loader: 'babel-loader',
       },
     ],
+  },
+  output: {
+    path: path.resolve(__dirname, 'dist/'),
+    filename: 'bundle.js',
   },
   resolve: {
     extensions: ['.ts', '.tsx', '.js', '.jsx'],
