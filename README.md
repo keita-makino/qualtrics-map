@@ -21,15 +21,29 @@ A react-based component that displays an embedded Google Maps in [Qualtrics](htt
 This library uses Google [Geocoding API](https://developers.google.com/maps/documentation/geocoding/overview), [Maps Javascript API](https://developers.google.com/maps/documentation/javascript/tutorial), and [Places API](https://developers.google.com/places/web-service/intro).  
 Make sure you have a key to access those APIs.
 
+## Option 1 (use CDN)
+
+<details>
+<summary>Click to open</summary>
+  
+Copy [https://cdn.jsdelivr.net/gh/keita-makino/qualtrics-map/dist/bundle.js](https://cdn.jsdelivr.net/gh/keita-makino/qualtrics-map/dist/bundle.js) <- this address (*not the contents of this address*) and proceed to "Header settings".
+
+</details>
+
+## Option 2 (manual upload)
+
+<details>
+<summary>Click to open</summary>
+  
 ## Get bundle.txt
 
 There are two ways to obtain your `bundle.txt`. Choose one way as your needs and then proceed to "Qualtrics Survey Settings".
 
-### Using Template
+### Using template
 
 Download the template from the [relaese page](https://github.com/keita-makino/qualtrics-map/releases).
 
-### Build by Yourself
+### Build by yourself
 
 Alternatively, you can build the component in your environment.  
 This approach is neeeded if you want to custom the component (placeholder text, button color, and others).
@@ -46,14 +60,16 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 1. Upload the text file.
 1. Click the gear icon at the right of the uploaded file and select "Rename File".
 1. Select the uploaded file and click "View" button.
-1. Copy the URL of the file opened in the new window.
+1. Copy the URL of the file opened in the new window and proceed to "Header settings".
 
-### Header Settings
+</details>
+
+## Header settings
 
 1. In the survey edit screen, click "Look & Feel" on right-top.
 1. Select "General" tab and then edit the "Header".
 1. Click the "<>" icon to enter coding-view.
-1. Copy and paste the following code, replacing the `[apiKey]` and `[fileUrl]` with respectively the API key and the URL of `bundle.txt`.
+1. Copy and paste the following code, replacing the `[apiKey]` and `[fileUrl]` with respectively the API key and the URL that you copied above.
 
 ```javascript
 <script>
@@ -64,7 +80,7 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 <script src="[fileUrl]"></script>
 ```
 
-## Use It
+## Use it
 
 1. The question that you want add the map has to be set as "Text Entry" + "Form" question.
 1. Add / remove text fields and set the field tag as you need. (e.g., Two text fields named "From:" and "To:").
