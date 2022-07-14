@@ -55,7 +55,7 @@
     "eslint-plugin-prettier": "4.0.0",
     "eslint-plugin-react": "7.28.0",
     "eslint-plugin-react-hooks": "4.3.0",
-    "framer-motion": "6.0.0",
+    "framer-motion": "6.5.1",
     "html-webpack-plugin": "5.5.0",
     "husky": "7.0.4",
     "license-checker": "25.0.1",
