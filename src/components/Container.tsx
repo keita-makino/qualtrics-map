@@ -8,13 +8,6 @@ import { View } from '../types/View';
 import { useTrackedState, useUpdate } from '../store';
 import { InputForm } from './InputForm';
 
-const libraries: (
-  | 'drawing'
-  | 'geometry'
-  | 'localContext'
-  | 'places'
-  | 'visualization'
-)[] = ['places'];
 
 type Props = {
   apiKey: string;
@@ -34,49 +27,10 @@ export const Container: React.FC<Props> = (props) => {
     return { address: address };
   };
 
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: props.apiKey,
-    libraries,
-  });
-
-  const geocoder = useGeocoder(isLoaded);
-
-  useEffect(() => {
-    if (geocoder) {
-      update({
-        type: 'SET_GEOCODER',
-        geocoder: geocoder,
-      });
-    }
-    if (geocoder && !isCenterProvided) {
-      geocoder.geocode(getInitialLocation(), (results, status) => {
-        if (results) {
-          update({
-            type: 'SET_VIEW',
-            view: {
-              ...state.view,
-              location: results[0].geometry.location.toJSON(),
-            },
-          });
-        }
-      });
-    } else if (geocoder && isCenterProvided) {
-      update({
-        type: 'SET_VIEW',
-        view: {
-          ...state.view,
-          ...props.view,
-        },
-      });
-    }
-  }, [geocoder, isCenterProvided]);
-
-  const inputHTMLElements = props.directionContainer.getElementsByTagName(
-    'input'
-  );
-  const labelHTMLElements = props.directionContainer.getElementsByTagName(
-    'label'
-  );
+  const inputHTMLElements =
+    props.directionContainer.getElementsByTagName('input');
+  const labelHTMLElements =
+    props.directionContainer.getElementsByTagName('label');
 
   useEffect(() => {
     if ([...labelHTMLElements].length > 0) {
@@ -92,18 +46,9 @@ export const Container: React.FC<Props> = (props) => {
     }
   }, []);
 
-  return !isLoaded ? (
-    <span>Loading the map...</span>
-  ) : loadError ? (
-    <span>
-      Something went wrong. Please contact the survey administrator for
-      assistance.
-    </span>
-  ) : (
+  return (
     <Grid container>
-      <InputForm />
       <Map />
-      <ClearButton />
     </Grid>
   );
 };

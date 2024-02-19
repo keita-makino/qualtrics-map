@@ -1,8 +1,12 @@
 import { Grid, makeStyles } from '@material-ui/core';
 import { GoogleMap, Marker as MapMarker } from '@react-google-maps/api';
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useRef, useState } from 'react';
 import { useTrackedState, useUpdate } from '../store';
 import { Input } from '../types/Input';
+import mapboxgl from 'mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
+
+mapboxgl.accessToken =
+  'pk.eyJ1Ijoia2VtYWtpbm8iLCJhIjoiY2s1aHJibjRhMDZsNDNscDExM2w1NGJ1OCJ9.mc7KzAHPfIDbt6_ujYvNRw';
 
 const useStyles = makeStyles({
   button: {
@@ -20,6 +24,8 @@ const useStyles = makeStyles({
   },
   mapContainer: {
     paddingTop: '2rem',
+    height: '400px',
+    width: '100%',
     '& [aria-label *= "Street View Pegman Control"]': {
       height: '30px !important',
     },
@@ -31,29 +37,21 @@ export const Map: React.FC = () => {
   const update = useUpdate();
   const state = useTrackedState();
 
-  useEffect(() => {
-    const inputIndexForAddressUpdate = state.inputs.findIndex(
-      (item) => item.location && !item.address
-    );
+  const mapContainer = useRef<any>(null);
+  const map = useRef<any>(null);
+  const [lng, setLng] = useState(-70.9);
+  const [lat, setLat] = useState(42.35);
+  const [zoom, setZoom] = useState(9);
 
-    if (inputIndexForAddressUpdate > -1 && state.geocoder) {
-      const inputForAddressUpdate = state.inputs[inputIndexForAddressUpdate];
-      state.geocoder.geocode(
-        { location: inputForAddressUpdate.location },
-        (results, status) => {
-          if (results) {
-            update({
-              type: 'EDIT_INPUT',
-              input: {
-                ...inputForAddressUpdate,
-                address: results[0].formatted_address,
-              },
-              index: inputIndexForAddressUpdate,
-            });
-          }
-        }
-      );
-    }
+  useEffect(() => {
+    if (map.current) return;
+    map.current = new mapboxgl.Map({
+      container: mapContainer.current,
+      style: 'mapbox://styles/mapbox/streets-v12',
+      center: [lng, lat],
+      zoom: zoom,
+    });
+    console.log(map.current);
   });
 
   return (
@@ -67,58 +65,9 @@ export const Map: React.FC = () => {
       xs={12}
       className={classes.mapContainer}
     >
-      <GoogleMap
-        id="map"
-        clickableIcons={false}
-        mapContainerStyle={{
-          width: '100%',
-          height: '60vh',
-        }}
-        center={state.view.location}
-        onClick={(event) => {
-          const coordinates = {
-            lat: event!.latLng!.lat(),
-            lng: event!.latLng!.lng(),
-          };
-          update({
-            type: 'EDIT_INPUT',
-            input: { label: 'Clicked location', location: coordinates },
-          });
-        }}
-        zoom={14}
-      >
-        {state.inputs.map((item: Input, index: number) => {
-          if (item.location) {
-            const label: google.maps.MarkerLabel | null =
-              state.inputs[index].label !== ''
-                ? {
-                    text: state.inputs[index].label,
-                    fontWeight: 'bold',
-                  }
-                : null;
-            return (
-              <MapMarker
-                draggable={true}
-                onDragEnd={(event: any) => {
-                  const coordinates = {
-                    lat: event.latLng.lat(),
-                    lng: event.latLng.lng(),
-                  };
-                  update({
-                    type: 'EDIT_INPUT',
-                    index: index,
-                    input: { label: 'Clicked location', location: coordinates },
-                  });
-                }}
-                label={label || undefined}
-                position={item.location}
-              />
-            );
-          } else {
-            return null;
-          }
-        })}
-      </GoogleMap>
+      <div>
+        <div ref={mapContainer} className="map-container" />
+      </div>
     </Grid>
   );
 };
