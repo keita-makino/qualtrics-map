@@ -40,7 +40,7 @@ export const Map: React.FC = () => {
   const mapContainer = useRef<any>(null);
   const [zoom, setZoom] = useState(9);
 
-  const [markers, setMarkers] = useState<(mapboxgl.Marker | undefined)[]>([]);
+  const [markers, setMarkers] = useState<mapboxgl.Marker[]>([]);
 
   useEffect(() => {
     if (!mapContainer.current) return;
@@ -57,6 +57,16 @@ export const Map: React.FC = () => {
     });
     console.log('map initialized: ', newMap);
   }, []);
+
+  useEffect(() => {
+    if (markers.length === 0 && state.inputs.length > 0 && state.map) {
+      setMarkers(
+        state.inputs.map((input: Input) =>
+          new mapboxgl.Marker().setLngLat([0, 90]).addTo(state.map!)
+        )
+      );
+    }
+  }, [state]);
 
   useEffect(() => {
     if (!state.map) return;
@@ -90,32 +100,18 @@ export const Map: React.FC = () => {
   }, [state.map]);
 
   useEffect(() => {
+    console.log(markers);
     if (!state.map) return;
-    console.log('setting map view: ', state.view);
-    markers.map((marker) => marker?.remove());
-    setMarkers(
-      state.inputs.map((input: Input) => {
-        return input.location !== undefined
-          ? new mapboxgl.Marker().setLngLat([
-              input.location!.lng,
-              input.location!.lat,
-            ])
-          : undefined;
-      })
-    );
+    if (markers.length === 0) return;
+    console.log('replacing markers: ', state.view);
+    state.inputs.forEach((input: Input, index: number) => {
+      if (input.location !== undefined) {
+        markers[index].setLngLat([input.location.lng, input.location.lat]);
+      } else {
+        markers[index].setLngLat([0, 90]);
+      }
+    });
   }, [state]);
-
-  useEffect(() => {
-    console.log('markers: ', markers);
-    if (state.inputs.every((item) => item.location === undefined)) {
-      console.log('removing all markers');
-      markers.map((marker) => marker?.remove());
-    } else {
-      markers
-        .filter((item) => item !== undefined)
-        .map((marker) => marker!.addTo(state.map!));
-    }
-  }, [markers]);
 
   return (
     <Grid
