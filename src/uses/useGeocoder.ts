@@ -1,15 +1,11 @@
+import mapboxgl from 'mapbox-gl';
 import { useState, useCallback, useEffect } from 'react';
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
 export const useGeocoder = (isLoaded: boolean) => {
-  const [geocoder, setGeocoder] = useState<google.maps.Geocoder | null>(null);
+  const [geocoder, setGeocoder] = useState<MapboxGeocoder | null>(null);
 
-  const initializeGeocoder = useCallback(() => {
-    const map = window?.google?.maps;
-
-    if (map) {
-      setGeocoder(new map.Geocoder());
-    }
-  }, []);
+  const initializeGeocoder = useCallback(() => {}, []);
 
   useEffect(() => {
     if (isLoaded) {

@@ -12,14 +12,12 @@ export const editInput = (
       ? _index
       : state.inputs.findIndex((item) => item.location === undefined);
   if (index !== -1) {
-    if (state.geocoder) {
-      if (input.location) {
-        state.view.location = input.location;
-        state.inputs[index].htmlElement!.value = JSON.stringify(input.location);
-      }
-      state.inputs[index].location = input.location;
-      state.inputs[index].address = input.address;
+    if (input.location) {
+      state.view.location = input.location;
+      state.inputs[index].htmlElement!.value = JSON.stringify(input.location);
     }
+    state.inputs[index].location = input.location;
+    state.inputs[index].address = input.address;
   }
   return state;
 };

@@ -2,20 +2,21 @@ import { useReducer, useState } from 'react';
 import { createContainer } from 'react-tracked';
 import { Input } from '../types/Input';
 import { View } from '../types/View';
-import { useGeocoder } from '../uses/useGeocoder';
 import { editInput } from './editInput';
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+import { Map } from 'mapbox-gl';
 
 export type GlobalState = {
   apiKey: string | undefined;
   inputs: Input[];
-  geocoder: google.maps.Geocoder | undefined;
+  map: Map | undefined;
   view: View;
 };
 
 const initialState: GlobalState = {
   apiKey: undefined,
   inputs: [],
-  geocoder: undefined,
+  map: undefined,
   view: {
     location: { lat: 38.540604, lng: -121.766941 },
     zoom: 12,
@@ -23,6 +24,10 @@ const initialState: GlobalState = {
 };
 
 export type Action =
+  | {
+      type: 'SET_ACCESS_TOKEN';
+      accessToken: string;
+    }
   | {
       type: 'ADD_INPUTS';
       inputs: Input[];
@@ -32,13 +37,18 @@ export type Action =
       view: View;
     }
   | {
+      type: 'SET_MAP';
+      map: Map;
+    }
+  | {
       type: 'EDIT_INPUT';
       input: Input;
       index?: number;
     }
   | {
       type: 'SET_GEOCODER';
-      geocoder: google.maps.Geocoder;
+      geocoder: MapboxGeocoder;
+      index: number;
     }
   | {
       type: 'CLEAR_INPUT';
@@ -46,6 +56,11 @@ export type Action =
 
 const reducer = (state: GlobalState, action: Action): GlobalState => {
   switch (action.type) {
+    case 'SET_ACCESS_TOKEN':
+      return {
+        ...state,
+        apiKey: action.accessToken,
+      };
     case 'ADD_INPUTS':
       return {
         ...state,
@@ -56,24 +71,37 @@ const reducer = (state: GlobalState, action: Action): GlobalState => {
         ...state,
         view: action.view,
       };
+    case 'SET_MAP':
+      return {
+        ...state,
+        map: action.map,
+      };
     case 'EDIT_INPUT':
       return editInput(state, action.input, action.index);
     case 'SET_GEOCODER':
-      return {
-        ...state,
-        geocoder: action.geocoder,
-      };
+      return setGeocoder(state, action.geocoder, action.index);
     case 'CLEAR_INPUT':
       return {
         ...state,
         inputs: state.inputs.map((item) => ({
           label: item.label,
           htmlElement: item.htmlElement,
+          geocoder: item.geocoder,
         })),
       };
     default:
       return state;
   }
+};
+
+const setGeocoder = (
+  state: GlobalState,
+  geocoder: MapboxGeocoder,
+  index: number
+) => {
+  const newState = { ...state };
+  newState.inputs[index].geocoder = geocoder;
+  return newState;
 };
 
 const useGlobalState = () => useReducer(reducer, initialState);

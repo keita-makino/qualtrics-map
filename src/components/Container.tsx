@@ -7,7 +7,8 @@ import { Map } from './Map';
 import { View } from '../types/View';
 import { useTrackedState, useUpdate } from '../store';
 import { InputForm } from './InputForm';
-
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+import mapboxgl from 'mapbox-gl';
 
 type Props = {
   apiKey: string;
@@ -43,12 +44,18 @@ export const Container: React.FC<Props> = (props) => {
           htmlElement: inputHTMLElements[index],
         })),
       });
+      update({
+        type: 'SET_ACCESS_TOKEN',
+        accessToken: props.apiKey,
+      });
     }
   }, []);
 
   return (
     <Grid container>
+      <InputForm />
       <Map />
+      <ClearButton />
     </Grid>
   );
 };

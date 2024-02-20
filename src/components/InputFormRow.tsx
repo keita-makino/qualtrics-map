@@ -1,7 +1,9 @@
-import { Grid, Box, makeStyles } from '@material-ui/core';
+import { Grid, Box, makeStyles, TextField } from '@material-ui/core';
 import { Autocomplete } from '@react-google-maps/api';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useTrackedState, useUpdate } from '../store';
+import { AddressAutofill, SearchBox } from '@mapbox/search-js-react';
+import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 
 export type InputRowProps = { label: string; index: number };
 
@@ -22,48 +24,38 @@ export const InputRow: React.FC<InputRowProps> = (props: InputRowProps) => {
   const classes = useStyles();
   const state = useTrackedState();
   const update = useUpdate();
-  const [autocomplete, setAutocomplete] = useState<
-    google.maps.places.Autocomplete | undefined
-  >(undefined);
-  const [address, setAddress] = useState<string | undefined>(undefined);
+  const [value, setValue] = useState('');
+
+  const inputFormRowRef = useRef(null);
 
   useEffect(() => {
-    setAddress(state.inputs[props.index].address);
-  }, [state]);
-
-  useEffect(() => {
-    const inputIndexForLocationUpdate = state.inputs.findIndex(
-      (item) => !item.location && item.address
-    );
-
-    if (inputIndexForLocationUpdate > -1 && state.geocoder) {
-      const inputForLocationUpdate = state.inputs[inputIndexForLocationUpdate];
-      state.geocoder.geocode(
-        {
-          address: inputForLocationUpdate.address,
-        },
-        (results, status) => {
-          if (results) {
-            update({
-              type: 'EDIT_INPUT',
-              input: {
-                ...inputForLocationUpdate,
-                location: results[0].geometry.location.toJSON(),
-              },
-              index: inputIndexForLocationUpdate,
-            });
-            update({
-              type: 'SET_VIEW',
-              view: {
-                ...state.view,
-                location: results[0].geometry.location.toJSON(),
-              },
-            });
-          }
-        }
-      );
+    if (inputFormRowRef.current && state.apiKey) {
+      const geocoder = new MapboxGeocoder({
+        accessToken: state.apiKey,
+      });
+      geocoder.on('result', (event) => {
+        setValue(event.result.place_name);
+        update({
+          type: 'EDIT_INPUT',
+          input: {
+            label: props.label,
+            address: event.result.place_name,
+            location: {
+              lat: event.result.center[1],
+              lng: event.result.center[0],
+            },
+          },
+          index: props.index,
+        });
+      });
+      geocoder.addTo(inputFormRowRef.current);
+      update({
+        type: 'SET_GEOCODER',
+        geocoder: geocoder,
+        index: props.index,
+      });
     }
-  }, [state]);
+  }, [inputFormRowRef, state.apiKey]);
 
   return (
     <Grid
@@ -78,33 +70,8 @@ export const InputRow: React.FC<InputRowProps> = (props: InputRowProps) => {
       justify={'space-between'}
     >
       {props.label}
-      <Box flexGrow={1} className={classes.autocompleteContainer}>
-        <Autocomplete
-          onLoad={(autocomplete: google.maps.places.Autocomplete) => {
-            setAutocomplete(autocomplete);
-          }}
-          onPlaceChanged={() => {
-            if (autocomplete) {
-              update({
-                type: 'EDIT_INPUT',
-                index: props.index,
-                input: {
-                  label: 'Edited address',
-                  address: autocomplete.getPlace().formatted_address,
-                },
-              });
-            }
-          }}
-        >
-          <input
-            type="text"
-            placeholder="Search address or drop a pin on the map"
-            value={address || ''}
-            onChange={({ target: { value } }) => {
-              setAddress(value);
-            }}
-          />
-        </Autocomplete>
+      <Box flexGrow={1}>
+        <div ref={inputFormRowRef} />
       </Box>
     </Grid>
   );
