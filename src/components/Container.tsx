@@ -5,6 +5,8 @@ import { Map } from './Map';
 import { View } from '../types/View';
 import { useTrackedState, useUpdate } from '../store';
 import { InputForm } from './InputForm';
+import mbxGeocoder from '@mapbox/mapbox-sdk/services/geocoding';
+import { stat } from 'fs';
 
 type Props = {
   accessToken: string;
@@ -13,21 +15,56 @@ type Props = {
 };
 
 export const Container: React.FC<Props> = (props) => {
+  const state = useTrackedState();
   const update = useUpdate();
   const getInitialLocation = () => {
     const region = (window as any).countryCode || 'US';
     const address = (window as any).postalCode
       ? `${region} ${(window as any).postalCode}`
       : region;
-    return { address: address };
+    return address;
   };
 
-  const inputHTMLElements =
-    props.directionContainer.getElementsByTagName('input');
-  const labelHTMLElements =
-    props.directionContainer.getElementsByTagName('label');
-
   useEffect(() => {
+    const geocoderService = mbxGeocoder({
+      accessToken: props.accessToken,
+    });
+
+    geocoderService
+      .forwardGeocode({
+        query: getInitialLocation(),
+      })
+      .send()
+      .then((response) => {
+        console.log(response.body.features[0].center);
+
+        if (response.body.features[0]) {
+          update({
+            type: 'MAP_MOVE',
+            location: response.body.features[0].center
+              ? {
+                  lat: response.body.features[0].center[1],
+                  lng: response.body.features[0].center[0],
+                }
+              : props.view?.location
+                ? props.view.location
+                : {
+                    lat: 35,
+                    lng: 0,
+                  },
+          });
+        }
+        update({
+          type: 'SET_ACCESS_TOKEN',
+          accessToken: props.accessToken,
+        });
+      });
+
+    update({
+      type: 'INITIALIZE_GEOCODER',
+      geocoder: geocoderService,
+    });
+
     if ([...labelHTMLElements].length > 0) {
       update({
         type: 'ADD_INPUTS',
@@ -38,12 +75,19 @@ export const Container: React.FC<Props> = (props) => {
           htmlElement: inputHTMLElements[index],
         })),
       });
+    }
+    if (props.view?.zoom) {
       update({
-        type: 'SET_ACCESS_TOKEN',
-        accessToken: props.accessToken,
+        type: 'MAP_ZOOM',
+        zoom: props.view.zoom,
       });
     }
   }, []);
+
+  const inputHTMLElements =
+    props.directionContainer.getElementsByTagName('input');
+  const labelHTMLElements =
+    props.directionContainer.getElementsByTagName('label');
 
   return (
     <Grid container>

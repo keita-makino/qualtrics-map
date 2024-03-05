@@ -3,7 +3,6 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Action, GlobalState, useTrackedState, useUpdate } from '../store';
 import { Input } from '../types/Input';
 import mapboxgl from 'mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
-import mbxGeocoder from '@mapbox/mapbox-sdk/services/geocoding';
 import styled from '@emotion/styled';
 import { useStandbyIndex } from '../uses/useStandbyIndex';
 
@@ -68,15 +67,6 @@ export const Map: React.FC = () => {
     update({
       type: 'INITIALIZE_MAP',
       map: newMap,
-    });
-
-    const geocoderService = mbxGeocoder({
-      accessToken: state.accessToken,
-    });
-
-    update({
-      type: 'INITIALIZE_GEOCODER',
-      geocoder: geocoderService,
     });
   }, [mapContainer, state.accessToken]);
 
