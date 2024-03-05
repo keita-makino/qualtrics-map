@@ -16,6 +16,10 @@ export type InputRowProps = { label: string; index: number };
 
 const StyledGrid = styled(Grid)`
   padding: 0.5rem 0;
+  & input {
+    border: none !important;
+    background: none !important;
+  }
 `;
 
 export const InputRow: React.FC<InputRowProps> = (props: InputRowProps) => {
@@ -50,7 +54,7 @@ export const InputRow: React.FC<InputRowProps> = (props: InputRowProps) => {
     }
   }, [state.geocoder]);
 
-  useMemo(() => {
+  useEffect(() => {
     setLoading(true);
     if (timer.current) clearTimeout(timer.current);
     if (!isOpen) {
@@ -105,6 +109,17 @@ export const InputRow: React.FC<InputRowProps> = (props: InputRowProps) => {
             lng: newData.location.lng,
           },
           index: props.index,
+        });
+        update({
+          type: 'MAP_MOVE',
+          location: {
+            lat: newData.location.lat,
+            lng: newData.location.lng,
+          },
+        });
+        state.map?.easeTo({
+          center: [newData.location.lng, newData.location.lat],
+          essential: true,
         });
       }
     } else if (reason === 'clear') {

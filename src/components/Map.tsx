@@ -38,6 +38,33 @@ export const Map: React.FC = () => {
       });
     });
 
+    newMap.on('moveend', (event: any) => {
+      update({
+        type: 'MAP_MOVE',
+        location: {
+          lat: event.target.getCenter().lat,
+          lng: event.target.getCenter().lng,
+        },
+      });
+    });
+
+    newMap.on('dragend', (event: any) => {
+      update({
+        type: 'MAP_MOVE',
+        location: {
+          lat: event.target.getCenter().lat,
+          lng: event.target.getCenter().lng,
+        },
+      });
+    });
+
+    newMap.on('zoomend', (event: any) => {
+      update({
+        type: 'MAP_ZOOM',
+        zoom: event.target.getZoom(),
+      });
+    });
+
     update({
       type: 'INITIALIZE_MAP',
       map: newMap,
@@ -57,8 +84,27 @@ export const Map: React.FC = () => {
     if (state.markers.length === 0 && state.inputs.length > 0 && state.map) {
       update({
         type: 'ADD_MARKERS',
-        markers: state.inputs.map(() =>
-          new mapboxgl.Marker().setLngLat([0, 90]).addTo(state.map!),
+        markers: state.inputs.map((_item, index) =>
+          new mapboxgl.Marker({
+            draggable: true,
+          })
+            .on('dragstart', (event: any) => {
+              update({
+                type: 'RESET_CLICKED_INDEX',
+              });
+            })
+            .on('dragend', (event: any) => {
+              update({
+                type: 'MOVE_MARKER_BY_DRAGGING',
+                location: {
+                  lat: event.target.getLngLat().lat,
+                  lng: event.target.getLngLat().lng,
+                },
+                index: index,
+              });
+            })
+            .setLngLat([0, 90])
+            .addTo(state.map!),
         ),
       });
     }

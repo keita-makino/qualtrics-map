@@ -59,6 +59,22 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       ]);
       return newState;
     }
+    case 'RESET_CLICKED_INDEX':
+      return {
+        ...state,
+        clickedIndex: undefined,
+      };
+    case 'MOVE_MARKER_BY_DRAGGING': {
+      const newState = { ...state };
+      newState.markers[action.index].setLngLat([
+        action.location.lng,
+        action.location.lat,
+      ]);
+      newState.inputs[action.index].location = action.location;
+      newState.view.location = action.location;
+      newState.clickedIndex = action.index;
+      return newState;
+    }
     case 'CLEAR_INPUT':
       return {
         ...state,

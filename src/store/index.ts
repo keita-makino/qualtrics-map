@@ -2,7 +2,7 @@ import { useReducer, useState } from 'react';
 import { createContainer } from 'react-tracked';
 import { Input } from '../types/Input';
 import { View } from '../types/View';
-import { Map } from 'mapbox-gl';
+import { Map, Marker } from 'mapbox-gl';
 import { GeocodeService } from '@mapbox/mapbox-sdk/services/geocoding';
 import { MapiRequest } from '@mapbox/mapbox-sdk/lib/classes/mapi-request';
 import { reducer } from './reducer';
@@ -86,6 +86,14 @@ export type Action =
   | {
       type: 'MOVE_MARKER';
 
+      location: { lat: number; lng: number };
+      index: number;
+    }
+  | {
+      type: 'RESET_CLICKED_INDEX';
+    }
+  | {
+      type: 'MOVE_MARKER_BY_DRAGGING';
       location: { lat: number; lng: number };
       index: number;
     }
