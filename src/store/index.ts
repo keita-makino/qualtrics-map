@@ -2,79 +2,108 @@ import { useReducer, useState } from 'react';
 import { createContainer } from 'react-tracked';
 import { Input } from '../types/Input';
 import { View } from '../types/View';
-import { useGeocoder } from '../uses/useGeocoder';
-import { editInput } from './editInput';
+import { Map, Marker } from 'mapbox-gl';
+import { GeocodeService } from '@mapbox/mapbox-sdk/services/geocoding';
+import { MapiRequest } from '@mapbox/mapbox-sdk/lib/classes/mapi-request';
+import { reducer } from './reducer';
 
 export type GlobalState = {
-  apiKey: string | undefined;
+  accessToken?: string;
   inputs: Input[];
-  geocoder: google.maps.Geocoder | undefined;
+  map?: Map;
   view: View;
+  markers: mapboxgl.Marker[];
+  clickedIndex?: number;
+  geocoder?: GeocodeService;
 };
 
 const initialState: GlobalState = {
-  apiKey: undefined,
+  accessToken: undefined,
   inputs: [],
-  geocoder: undefined,
+  map: undefined,
   view: {
     location: { lat: 38.540604, lng: -121.766941 },
-    zoom: 12,
+    zoom: 13.5,
   },
+  markers: [],
+  clickedIndex: undefined,
+  geocoder: undefined,
 };
 
 export type Action =
+  | {
+      type: 'SET_ACCESS_TOKEN';
+      accessToken: string;
+    }
   | {
       type: 'ADD_INPUTS';
       inputs: Input[];
     }
   | {
-      type: 'SET_VIEW';
-      view: View;
+      type: 'EDIT_TEXTFIELD_VALUE';
+      value: string | null;
+      index: number;
+    }
+  | {
+      type: 'EDIT_TEXTFIELD_INPUT_VALUE';
+      value: string;
+      index: number;
+    }
+  | {
+      type: 'MAP_CLICK';
+      location: { lat: number; lng: number };
+    }
+  | {
+      type: 'MAP_MOVE';
+      location: { lat: number; lng: number };
+    }
+  | {
+      type: 'MAP_ZOOM';
+      zoom: number;
+    }
+  | {
+      type: 'INITIALIZE_MAP';
+      map: Map;
     }
   | {
       type: 'EDIT_INPUT';
-      input: Input;
-      index?: number;
+      input: {
+        label: string;
+        address?: string;
+        location?: { lat: number; lng: number };
+      };
+      index: number;
     }
   | {
-      type: 'SET_GEOCODER';
-      geocoder: google.maps.Geocoder;
+      type: 'EDIT_GEOCODE_SUGGESTIONS';
+      geocodeResults: MapiRequest['body']['features'];
+      index: number;
+    }
+  | {
+      type: 'ADD_MARKERS';
+      markers: mapboxgl.Marker[];
+    }
+  | {
+      type: 'MOVE_MARKER';
+
+      location: { lat: number; lng: number };
+      index: number;
+    }
+  | {
+      type: 'RESET_CLICKED_INDEX';
+    }
+  | {
+      type: 'MOVE_MARKER_BY_DRAGGING';
+      location: { lat: number; lng: number };
+      index: number;
     }
   | {
       type: 'CLEAR_INPUT';
+    }
+  | {
+      type: 'INITIALIZE_GEOCODER';
+      geocoder: GeocodeService;
     };
-
-const reducer = (state: GlobalState, action: Action): GlobalState => {
-  switch (action.type) {
-    case 'ADD_INPUTS':
-      return {
-        ...state,
-        inputs: [...state.inputs, ...action.inputs],
-      };
-    case 'SET_VIEW':
-      return {
-        ...state,
-        view: action.view,
-      };
-    case 'EDIT_INPUT':
-      return editInput(state, action.input, action.index);
-    case 'SET_GEOCODER':
-      return {
-        ...state,
-        geocoder: action.geocoder,
-      };
-    case 'CLEAR_INPUT':
-      return {
-        ...state,
-        inputs: state.inputs.map((item) => ({
-          label: item.label,
-          htmlElement: item.htmlElement,
-        })),
-      };
-    default:
-      return state;
-  }
-};
 
 const useGlobalState = () => useReducer(reducer, initialState);
 

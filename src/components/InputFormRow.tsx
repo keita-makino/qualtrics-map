@@ -1,72 +1,197 @@
-import { Grid, Box, makeStyles } from '@material-ui/core';
-import { Autocomplete } from '@react-google-maps/api';
-import React, { useEffect, useState } from 'react';
+import {
+  Grid,
+  Box,
+  makeStyles,
+  Autocomplete,
+  TextField,
+  CircularProgress,
+} from '@mui/material';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTrackedState, useUpdate } from '../store';
+import styled from '@emotion/styled';
+import { LngLat } from 'mapbox-gl';
+import { useGeocodeSuggestions } from '../uses/useGeocodeSuggestions';
 
 export type InputRowProps = { label: string; index: number };
 
-const useStyles = makeStyles({
-  autocompleteContainer: {
-    '& div': {
-      width: '100%',
-      '& input': {
-        width: '100%',
-      },
-    },
-    padding: '0.3rem 0 0.3rem 1rem',
-    maxWidth: '75%',
-  },
-});
+const StyledGrid = styled(Grid)`
+  padding: 0.5rem 0;
+  & input {
+    border: none !important;
+    background: none !important;
+  }
+`;
 
 export const InputRow: React.FC<InputRowProps> = (props: InputRowProps) => {
-  const classes = useStyles();
   const state = useTrackedState();
   const update = useUpdate();
-  const [autocomplete, setAutocomplete] = useState<
-    google.maps.places.Autocomplete | undefined
-  >(undefined);
-  const [address, setAddress] = useState<string | undefined>(undefined);
+  const timer = useRef<NodeJS.Timeout | null>(null);
+  const [isOpen, setIsOpen] = useState<boolean>(false);
+  const options = useGeocodeSuggestions(props.index);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [value, setValue] = useState<string | null>(null);
+  const [inputValue, setInputValue] = useState<string>('');
 
-  useEffect(() => {
-    setAddress(state.inputs[props.index].address);
-  }, [state]);
-
-  useEffect(() => {
-    const inputIndexForLocationUpdate = state.inputs.findIndex(
-      (item) => !item.location && item.address
-    );
-
-    if (inputIndexForLocationUpdate > -1 && state.geocoder) {
-      const inputForLocationUpdate = state.inputs[inputIndexForLocationUpdate];
-      state.geocoder.geocode(
-        {
-          address: inputForLocationUpdate.address,
-        },
-        (results, status) => {
-          if (results) {
-            update({
-              type: 'EDIT_INPUT',
-              input: {
-                ...inputForLocationUpdate,
-                location: results[0].geometry.location.toJSON(),
-              },
-              index: inputIndexForLocationUpdate,
-            });
-            update({
-              type: 'SET_VIEW',
-              view: {
-                ...state.view,
-                location: results[0].geometry.location.toJSON(),
-              },
-            });
-          }
-        }
-      );
+  useMemo(() => {
+    if (state.inputs[props.index].textfieldValue !== undefined) {
+      setValue(state.inputs[props.index].textfieldValue!);
+    } else {
+      setValue(null);
     }
-  }, [state]);
+  }, [state.inputs[props.index].textfieldValue]);
+
+  useMemo(() => {
+    if (state.inputs[props.index].textfieldInputValue !== undefined) {
+      setInputValue(state.inputs[props.index].textfieldInputValue!);
+    } else {
+      setInputValue('');
+    }
+  }, [state.inputs[props.index].textfieldInputValue]);
+
+  useEffect(() => {
+    if (state.geocoder) {
+      setLoading(false);
+    }
+  }, [state.geocoder]);
+
+  useEffect(() => {
+    setLoading(true);
+    if (timer.current) clearTimeout(timer.current);
+    if (!isOpen) {
+      setLoading(false);
+      return;
+    }
+    timer.current = setTimeout(() => {
+      if (inputValue === '') return;
+      state.geocoder
+        ?.forwardGeocode({
+          query: inputValue!,
+          limit: 5,
+          proximity: [state.view.location.lng, state.view.location.lat],
+        })
+        .send()
+        .then((response) => {
+          update({
+            type: 'EDIT_GEOCODE_SUGGESTIONS',
+            index: props.index,
+            geocodeResults: response.body.features,
+          });
+        });
+      setLoading(false);
+    }, 1500);
+  }, [inputValue]);
+
+  const onChange = (event: any, newValue: string | null, reason: string) => {
+    if (reason === 'selectOption' && newValue) {
+      update({
+        type: 'EDIT_TEXTFIELD_VALUE',
+        index: props.index,
+        value: newValue,
+      });
+      const newData = options[event.target.dataset.optionIndex];
+      if (newData) {
+        update({
+          type: 'EDIT_INPUT',
+          input: {
+            label: props.label,
+            location: {
+              lat: newData.location.lat,
+              lng: newData.location.lng,
+            },
+            address: newData.address,
+          },
+          index: props.index,
+        });
+        update({
+          type: 'MOVE_MARKER',
+          location: {
+            lat: newData.location.lat,
+            lng: newData.location.lng,
+          },
+          index: props.index,
+        });
+        update({
+          type: 'MAP_MOVE',
+          location: {
+            lat: newData.location.lat,
+            lng: newData.location.lng,
+          },
+        });
+      }
+    } else if (reason === 'clear') {
+      update({
+        type: 'EDIT_TEXTFIELD_INPUT_VALUE',
+        index: props.index,
+        value: '',
+      });
+      update({
+        type: 'EDIT_TEXTFIELD_VALUE',
+        index: props.index,
+        value: null,
+      });
+      update({
+        type: 'EDIT_INPUT',
+        input: {
+          label: props.label,
+          location: undefined,
+          address: undefined,
+        },
+        index: props.index,
+      });
+      update({
+        type: 'MOVE_MARKER',
+        location: {
+          lat: 90,
+          lng: 0,
+        },
+        index: props.index,
+      });
+      update({
+        type: 'EDIT_GEOCODE_SUGGESTIONS',
+        index: props.index,
+        geocodeResults: [],
+      });
+    }
+  };
+
+  useEffect(() => {
+    if (props.index === state.clickedIndex && state.geocoder) {
+      state.geocoder
+        .reverseGeocode({
+          query: [state.view.location.lng, state.view.location.lat],
+          limit: 1,
+        })
+        .send()
+        .then((response) => {
+          const address = response.body.features[0].place_name;
+          update({
+            type: 'EDIT_INPUT',
+            input: {
+              label: props.label,
+              location: {
+                lat: state.view.location.lat,
+                lng: state.view.location.lng,
+              },
+              address: address,
+            },
+            index: props.index,
+          });
+          update({
+            type: 'EDIT_TEXTFIELD_INPUT_VALUE',
+            index: props.index,
+            value: address,
+          });
+          update({
+            type: 'EDIT_TEXTFIELD_VALUE',
+            index: props.index,
+            value: address,
+          });
+        });
+    }
+  }, [state.clickedIndex]);
 
   return (
-    <Grid
+    <StyledGrid
       item
       container
       xl={12}
@@ -75,37 +200,44 @@ export const InputRow: React.FC<InputRowProps> = (props: InputRowProps) => {
       sm={12}
       xs={12}
       alignItems={'center'}
-      justify={'space-between'}
     >
-      {props.label}
-      <Box flexGrow={1} className={classes.autocompleteContainer}>
+      <Box flexGrow={1}>
         <Autocomplete
-          onLoad={(autocomplete: google.maps.places.Autocomplete) => {
-            setAutocomplete(autocomplete);
-          }}
-          onPlaceChanged={() => {
-            if (autocomplete) {
+          onInputChange={(event: any, newInputValue: string | null) => {
+            if (newInputValue) {
               update({
-                type: 'EDIT_INPUT',
+                type: 'EDIT_TEXTFIELD_INPUT_VALUE',
                 index: props.index,
-                input: {
-                  label: 'Edited address',
-                  address: autocomplete.getPlace().formatted_address,
-                },
+                value: newInputValue,
               });
             }
           }}
-        >
-          <input
-            type="text"
-            placeholder="Search address or drop a pin on the map"
-            value={address || ''}
-            onChange={({ target: { value } }) => {
-              setAddress(value);
-            }}
-          />
-        </Autocomplete>
+          onChange={onChange}
+          onOpen={() => setIsOpen(true)}
+          onClose={() => setIsOpen(false)}
+          inputValue={inputValue}
+          value={value}
+          options={options.map((item) => item.address)}
+          renderInput={(params) => (
+            <TextField
+              {...params}
+              label={props.label}
+              placeholder={
+                'Please type address or click the location on the Map.'
+              }
+              InputProps={{
+                ...params.InputProps,
+                endAdornment: (
+                  <>
+                    {loading ? <CircularProgress /> : null}
+                    {params.InputProps.endAdornment}
+                  </>
+                ),
+              }}
+            />
+          )}
+        />
       </Box>
-    </Grid>
+    </StyledGrid>
   );
 };

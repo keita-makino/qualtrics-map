@@ -1,24 +1,21 @@
-import { Grid, Button, Typography, makeStyles } from '@material-ui/core';
-import { Marker } from '@react-google-maps/api';
+import { Grid, Button, Typography, makeStyles } from '@mui/material';
 import React, { useContext } from 'react';
 import { useUpdate } from '../store';
+import styled from '@emotion/styled';
 
 export type ClearButtonProps = {};
 
-const useStyles = makeStyles({
-  button: {
-    color: 'white !important',
-  },
-});
-
 export const ClearButton: React.FC<ClearButtonProps> = (
-  props: ClearButtonProps
+  props: ClearButtonProps,
 ) => {
-  const classes = useStyles();
   const update = useUpdate();
 
+  const StyledButton = styled(Button)`
+    color: white !important;
+  `;
+
   return (
-    <Grid container justify={'center'}>
+    <Grid container justifyContent={'center'}>
       <Grid
         item
         container
@@ -27,17 +24,16 @@ export const ClearButton: React.FC<ClearButtonProps> = (
         md={6}
         sm={6}
         xs={6}
-        justify={'center'}
-        style={{ position: 'relative', top: '-3rem' }}
+        justifyContent={'center'}
+        style={{ position: 'relative', top: '-4rem' }}
       >
-        <Button
+        <StyledButton
           variant={'contained'}
           color={'primary'}
           onClick={() => update({ type: 'CLEAR_INPUT' })}
-          className={classes.button}
         >
           <Typography variant={'button'}>Clear Pin(s)</Typography>
-        </Button>
+        </StyledButton>
       </Grid>
     </Grid>
   );
