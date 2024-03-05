@@ -29,6 +29,10 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case 'MAP_CLICK':
       return mapClick({ ...state }, action);
     case 'MAP_MOVE':
+      state.map?.easeTo({
+        center: [action.location.lng, action.location.lat],
+        essential: true,
+      });
       return {
         ...state,
         view: {

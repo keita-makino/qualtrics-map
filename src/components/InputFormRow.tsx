@@ -117,10 +117,6 @@ export const InputRow: React.FC<InputRowProps> = (props: InputRowProps) => {
             lng: newData.location.lng,
           },
         });
-        state.map?.easeTo({
-          center: [newData.location.lng, newData.location.lat],
-          essential: true,
-        });
       }
     } else if (reason === 'clear') {
       update({

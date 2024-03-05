@@ -37,16 +37,6 @@ export const Map: React.FC = () => {
       });
     });
 
-    newMap.on('moveend', (event: any) => {
-      update({
-        type: 'MAP_MOVE',
-        location: {
-          lat: event.target.getCenter().lat,
-          lng: event.target.getCenter().lng,
-        },
-      });
-    });
-
     newMap.on('dragend', (event: any) => {
       update({
         type: 'MAP_MOVE',
