@@ -1,70 +1,39 @@
 # qualtrics-map
 
-A react-based component that displays an embedded Google Maps in [Qualtrics](https://www.qualtrics.com).
+A react-based component that displays an embedded [Mapbox](https://www.mapbox.com/) interface on [Qualtrics](https://www.qualtrics.com).
+
+## Breaking change on v3.0.0
+The recent change (January 2024) disabled the use of `removeChild` method on an HTMLElement that does not have a parent node, which made the previous Google Maps no longer work.  
+The early versions of v3 may have some bugs or unintended behaviors. Please report them via the issues if you find one.
 
 ## Features
 
-- Collection of multiple answers in one question.
+- Collection of multiple answers to one question.
   - e.g., "From:" and "To:"
-- Use either of address bar with autocomplete or map marker.
+- Use either the address bar with autocomplete or a map marker.
 
 ---
 
-![Example](example.png)
+## Example
+
+![Example](/public/example.gif)
 
 ---
 
 # Installation
 
-## Google Maps API
+## Mapbox API
 
-This library uses Google [Geocoding API](https://developers.google.com/maps/documentation/geocoding/overview), [Maps Javascript API](https://developers.google.com/maps/documentation/javascript/tutorial), and [Places API](https://developers.google.com/places/web-service/intro).  
-Make sure you have a key to access those APIs.
+This library uses [Mapbox API](https://www.mapbox.com/product-apis). If you do not have an account, please create one via the link.  
+After creating the account, please obtain the access token for this map via the [account page](https://account.mapbox.com/).
 
-## Option 1 (use CDN)
+## CDN URL
 
-<details>
-<summary>Click to open</summary>
-  
-Copy [https://cdn.jsdelivr.net/gh/keita-makino/qualtrics-map/dist/bundle.js](https://cdn.jsdelivr.net/gh/keita-makino/qualtrics-map/dist/bundle.js) <- this address (*not the contents of this address*) and proceed to "Header settings".
+Copy [https://cdn.jsdelivr.net/gh/keita-makino/qualtrics-map/dist/bundle.js](https://cdn.jsdelivr.net/gh/keita-makino/qualtrics-map/dist/bundle.js) <- this address (*not the contents of this address*).
 
-</details>
+## Qualtrics survey settings
 
-## Option 2 (manual upload)
-
-<details>
-<summary>Click to open</summary>
-  
-## Get bundle.txt
-
-There are two ways to obtain your `bundle.txt`. Choose one way as your needs and then proceed to "Qualtrics Survey Settings".
-
-### Using template
-
-Download the template from the [relaese page](https://github.com/keita-makino/qualtrics-map/releases).
-
-### Build by yourself
-
-Alternatively, you can build the component in your environment.  
-This approach is neeeded if you want to custom the component (placeholder text, button color, and others).
-
-1. Clone or download the repository.
-1. `npm ci`
-1. `npm run build`
-
-## Qualtrics Survey Settings
-
-### File Upload
-
-1. Go to the files library in Qualtrics.
-1. Upload the text file.
-1. Click the gear icon at the right of the uploaded file and select "Rename File".
-1. Select the uploaded file and click "View" button.
-1. Copy the URL of the file opened in the new window and proceed to "Header settings".
-
-</details>
-
-## Header settings
+### Header settings
 
 1. In the survey edit screen, click "Look & Feel" on right-top.
 1. Select "General" tab and then edit the "Header".
@@ -73,20 +42,23 @@ This approach is neeeded if you want to custom the component (placeholder text, 
 
 ```javascript
 <script>
-  var apiKeyGoogleMap = '[apiKey]';
+  var accessToken = 'the access token you copied from the account page';
+  jQuery.noConflict();
   var countryCode = '${loc://CountryCode}';
   var postalCode = '${loc://PostalCode}';
 </script><br />
-<script src="[fileUrl]"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" rel="stylesheet" type="text/css" />
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.1.0/mapbox-gl.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/gh/keita-makino/qualtrics-map/dist/bundle.js"></script>
 ```
 
-## Use it
+### JavaScript coding
 
 1. The question that you want add the map has to be set as "Text Entry" + "Form" question.
 1. Add / remove text fields and set the field tag as you need. (e.g., Two text fields named "From:" and "To:").
 1. In the question, click the gear icon and then "Add Javascript..."
 1. Use the following code.
-1. If you need to set a default center location, use the latter one.
+1. If you need to set a default center location or zoom level, use the latter one.
 1. **All done!**
 
 ```javascript
@@ -97,16 +69,16 @@ Qualtrics.SurveyEngine.addOnload(function () {
 });
 
 Qualtrics.SurveyEngine.addOnReady(function () {
-  mapRender(apiKeyGoogleMap, document.getElementById(this.questionId));
+  mapRender(accessToken, document.getElementById(this.questionId));
 });
 
 // If you need to set a default center
 Qualtrics.SurveyEngine.addOnReady(function () {
-  mapRender(apiKeyGoogleMap, document.getElementById(this.questionId), {
+  mapRender(accessToken, document.getElementById(this.questionId), {
     location: {
       lat: 50,
       lng: -100,
-    },
+    } // optional,
     zoom: 12, // Optional
   });
 });
