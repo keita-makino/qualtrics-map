@@ -22,10 +22,7 @@ const initialState: GlobalState = {
   inputs: [],
   map: undefined,
   view: {
-    location: {
-      lat: 52,
-      lng: 0,
-    },
+    location: { lat: 38.540604, lng: -121.766941 },
     zoom: 13.5,
   },
   markers: [],

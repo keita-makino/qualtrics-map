@@ -15,7 +15,6 @@ type Props = {
 };
 
 export const Container: React.FC<Props> = (props) => {
-  const state = useTrackedState();
   const update = useUpdate();
   const getInitialLocation = () => {
     const region = (window as any).countryCode || 'US';
@@ -30,35 +29,37 @@ export const Container: React.FC<Props> = (props) => {
       accessToken: props.accessToken,
     });
 
-    geocoderService
-      .forwardGeocode({
-        query: getInitialLocation(),
-      })
-      .send()
-      .then((response) => {
-        console.log(response.body.features[0].center);
-
-        if (response.body.features[0]) {
-          update({
-            type: 'MAP_MOVE',
-            location: response.body.features[0].center
-              ? {
-                  lat: response.body.features[0].center[1],
-                  lng: response.body.features[0].center[0],
-                }
-              : props.view?.location
-                ? props.view.location
-                : {
-                    lat: 35,
-                    lng: 0,
-                  },
-          });
-        }
-        update({
-          type: 'SET_ACCESS_TOKEN',
-          accessToken: props.accessToken,
-        });
+    if (props.view?.location) {
+      update({
+        type: 'MAP_MOVE',
+        location: props.view.location,
       });
+      update({
+        type: 'SET_ACCESS_TOKEN',
+        accessToken: props.accessToken,
+      });
+    } else {
+      geocoderService
+        .forwardGeocode({
+          query: getInitialLocation(),
+        })
+        .send()
+        .then((response) => {
+          if (response.body.features[0]) {
+            update({
+              type: 'MAP_MOVE',
+              location: {
+                lat: response.body.features[0].center[1],
+                lng: response.body.features[0].center[0],
+              },
+            });
+          }
+          update({
+            type: 'SET_ACCESS_TOKEN',
+            accessToken: props.accessToken,
+          });
+        });
+    }
 
     update({
       type: 'INITIALIZE_GEOCODER',
