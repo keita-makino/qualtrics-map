@@ -23,7 +23,7 @@ const mapRender = (
   render(
     <Provider>
       <Container
-        apiKey={apiKey}
+        accessToken={apiKey}
         directionContainer={directionContainer}
         view={defaultView}
       />

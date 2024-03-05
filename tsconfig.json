@@ -14,7 +14,7 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "jsx": "react",
-    "types": ["google.maps"]
+    "types": ["node", "@types/mapbox__mapbox-sdk"]
   },
   "include": ["./src/**/*"]
 }

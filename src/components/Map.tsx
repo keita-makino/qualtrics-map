@@ -1,138 +1,72 @@
-import { Grid, makeStyles } from '@material-ui/core';
-import { GoogleMap, Marker as MapMarker } from '@react-google-maps/api';
-import React, { useContext, useEffect, useRef, useState } from 'react';
-import { useTrackedState, useUpdate } from '../store';
+import { Grid, makeStyles } from '@mui/material';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { Action, GlobalState, useTrackedState, useUpdate } from '../store';
 import { Input } from '../types/Input';
 import mapboxgl from 'mapbox-gl'; // eslint-disable-line import/no-webpack-loader-syntax
-
-mapboxgl.accessToken =
-  'pk.eyJ1Ijoia2VtYWtpbm8iLCJhIjoiY2s1aHJibjRhMDZsNDNscDExM2w1NGJ1OCJ9.mc7KzAHPfIDbt6_ujYvNRw';
-
-const useStyles = makeStyles({
-  button: {
-    color: 'white !important',
-  },
-  autocompleteContainer: {
-    '& div': {
-      width: '100%',
-      '& input': {
-        width: '100%',
-      },
-    },
-    padding: '0.3rem 0 0.3rem 1rem',
-    maxWidth: '75%',
-  },
-  mapContainer: {
-    paddingTop: '2rem',
-    height: '400px',
-    width: '720px',
-    '& [aria-label *= "Street View Pegman Control"]': {
-      height: '30px !important',
-    },
-  },
-});
+import mbxGeocoder from '@mapbox/mapbox-sdk/services/geocoding';
+import styled from '@emotion/styled';
+import { useStandbyIndex } from '../uses/useStandbyIndex';
 
 export const Map: React.FC = () => {
-  const classes = useStyles();
   const update = useUpdate();
   const state = useTrackedState();
+  const index = useStandbyIndex();
 
   const mapContainer = useRef<any>(null);
-  const [zoom, setZoom] = useState(9);
-
-  const [markers, setMarkers] = useState<mapboxgl.Marker[]>([]);
 
   useEffect(() => {
-    if (!mapContainer.current) return;
+    if (!mapContainer.current || !state.accessToken) return;
     const newMap = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v12',
       center: [state.view.location.lng, state.view.location.lat],
-      zoom: zoom,
+      zoom: state.view.zoom,
+      accessToken: state.accessToken,
     });
 
-    update({
-      type: 'SET_MAP',
-      map: newMap,
-    });
-    console.log('map initialized: ', newMap);
-  }, []);
-
-  useEffect(() => {
-    if (markers.length === 0 && state.inputs.length > 0 && state.map) {
-      setMarkers(
-        state.inputs.map((input: Input) =>
-          new mapboxgl.Marker().setLngLat([0, 90]).addTo(state.map!)
-        )
-      );
-    }
-  }, [state]);
-
-  useEffect(() => {
-    if (!state.map) return;
-    state.map.on('click', (event: any) => {
-      console.log(event.lngLat);
-      state.map!.easeTo({
+    newMap.on('click', (event: any) => {
+      event.target.easeTo({
         center: [event.lngLat.lng, event.lngLat.lat],
         essential: true,
       });
       update({
-        type: 'SET_VIEW',
-        view: {
-          ...state.view,
-          location: {
-            lat: event.lngLat.lat,
-            lng: event.lngLat.lng,
-          },
-        },
-      });
-      update({
-        type: 'EDIT_INPUT',
-        input: {
-          label: 'Clicked location',
-          location: {
-            lat: event.lngLat.lat,
-            lng: event.lngLat.lng,
-          },
+        type: 'MAP_CLICK',
+        location: {
+          lat: event.lngLat.lat,
+          lng: event.lngLat.lng,
         },
       });
     });
-  }, [state.map]);
+
+    update({
+      type: 'INITIALIZE_MAP',
+      map: newMap,
+    });
+
+    const geocoderService = mbxGeocoder({
+      accessToken: state.accessToken,
+    });
+
+    update({
+      type: 'INITIALIZE_GEOCODER',
+      geocoder: geocoderService,
+    });
+  }, [mapContainer, state.accessToken]);
 
   useEffect(() => {
-    console.log(markers);
-    if (!state.map) return;
-    if (markers.length === 0) return;
-    console.log('replacing markers: ', state.view);
-    state.inputs.forEach((input: Input, index: number) => {
-      if (input.location !== undefined) {
-        markers[index].setLngLat([input.location.lng, input.location.lat]);
-      } else {
-        markers[index].setLngLat([0, 90]);
-      }
-    });
-  }, [state]);
+    if (state.markers.length === 0 && state.inputs.length > 0 && state.map) {
+      update({
+        type: 'ADD_MARKERS',
+        markers: state.inputs.map(() =>
+          new mapboxgl.Marker().setLngLat([0, 90]).addTo(state.map!),
+        ),
+      });
+    }
+  }, [state.markers, state.inputs, state.map]);
 
   return (
-    <Grid
-      item
-      container
-      xl={12}
-      lg={12}
-      md={12}
-      sm={12}
-      xs={12}
-      className={classes.mapContainer}
-    >
-      <div>
-        {JSON.stringify(
-          state.inputs.map((input: Input) => {
-            input.label, input.address;
-          })
-        )}
-        {JSON.stringify(state.view)}
-        <div ref={mapContainer} className="map-container" />
-      </div>
+    <Grid item container xl={12} lg={12} md={12} sm={12} xs={12}>
+      <div ref={mapContainer} style={{ height: '60vh', width: '100%' }} />
     </Grid>
   );
 };

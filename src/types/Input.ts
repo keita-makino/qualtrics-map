@@ -1,5 +1,4 @@
-import mapboxgl from 'mapbox-gl';
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
+import { GeocodeResponse } from '@mapbox/mapbox-sdk/services/geocoding';
 
 export type Input = {
   label: string;
@@ -9,5 +8,7 @@ export type Input = {
     lng: number;
     lat: number;
   };
-  geocoder?: MapboxGeocoder;
+  textfieldInputValue?: string;
+  textfieldValue?: string | null;
+  geocoderSuggestions?: GeocodeResponse['features'];
 };

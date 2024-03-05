@@ -1,25 +1,19 @@
 import React, { useState, useEffect, useReducer } from 'react';
-import { Grid } from '@material-ui/core';
-import { useLoadScript } from '@react-google-maps/api';
-import { useGeocoder } from '../uses/useGeocoder';
+import { Grid } from '@mui/material';
 import { ClearButton } from './ClearButton';
 import { Map } from './Map';
 import { View } from '../types/View';
 import { useTrackedState, useUpdate } from '../store';
 import { InputForm } from './InputForm';
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
-import mapboxgl from 'mapbox-gl';
 
 type Props = {
-  apiKey: string;
+  accessToken: string;
   directionContainer: HTMLElement;
   view?: View;
 };
 
 export const Container: React.FC<Props> = (props) => {
-  const isCenterProvided = props.view?.location !== undefined;
   const update = useUpdate();
-  const state = useTrackedState();
   const getInitialLocation = () => {
     const region = (window as any).countryCode || 'US';
     const address = (window as any).postalCode
@@ -46,7 +40,7 @@ export const Container: React.FC<Props> = (props) => {
       });
       update({
         type: 'SET_ACCESS_TOKEN',
-        accessToken: props.apiKey,
+        accessToken: props.accessToken,
       });
     }
   }, []);
