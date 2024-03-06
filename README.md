@@ -42,7 +42,6 @@ Copy [https://cdn.jsdelivr.net/gh/keita-makino/qualtrics-map/dist/bundle.js](htt
 
 ```javascript
 <script>
-  var accessToken = 'the access token you copied from the account page';
   jQuery.noConflict();
   var countryCode = '${loc://CountryCode}';
   var postalCode = '${loc://PostalCode}';
@@ -69,12 +68,12 @@ Qualtrics.SurveyEngine.addOnload(function () {
 });
 
 Qualtrics.SurveyEngine.addOnReady(function () {
-  mapRender(accessToken, document.getElementById(this.questionId));
+  mapRender('the access token you copied from the account page', document.getElementById(this.questionId));
 });
 
 // If you need to set a default center
 Qualtrics.SurveyEngine.addOnReady(function () {
-  mapRender(accessToken, document.getElementById(this.questionId), {
+  mapRender('the access token you copied from the account page', document.getElementById(this.questionId), {
     location: {
       lat: 50,
       lng: -100,
