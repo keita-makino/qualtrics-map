@@ -48,7 +48,7 @@ Copy [https://cdn.jsdelivr.net/gh/keita-makino/qualtrics-map/dist/bundle.js](htt
 </script><br />
 <link href="https://api.mapbox.com/mapbox-gl-js/plugins/mapbox-gl-geocoder/v5.0.0/mapbox-gl-geocoder.css" rel="stylesheet" type="text/css" />
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.1.0/mapbox-gl.css" rel="stylesheet" />
-<script src="https://cdn.jsdelivr.net/gh/keita-makino/qualtrics-map@3.0.0/dist/bundle.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/keita-makino/qualtrics-map@3.0.1/dist/bundle.js"></script>
 ```
 
 ### JavaScript coding
