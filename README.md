@@ -38,7 +38,7 @@ Copy [https://cdn.jsdelivr.net/gh/keita-makino/qualtrics-map/dist/bundle.js](htt
 1. In the survey edit screen, click "Look & Feel" on right-top.
 1. Select "General" tab and then edit the "Header".
 1. Click the "<>" icon to enter coding-view.
-1. Copy and paste the following code, replacing the `[apiKey]` and `[fileUrl]` with respectively the API key and the URL that you copied above.
+1. Copy and paste the following code.
 
 ```javascript
 <script>
