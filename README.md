@@ -82,3 +82,7 @@ Qualtrics.SurveyEngine.addOnReady(function () {
   });
 });
 ```
+
+## Notes
+
+This package relies on the [Mapbox Geocoding API](https://docs.mapbox.com/api/search/geocoding/) for forward and reverse geocoding. The API is free until 100,000 calls per month but will charge after that, so please note that if you target a *very large* project.
