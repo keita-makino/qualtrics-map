@@ -34,10 +34,6 @@ export const Container: React.FC<Props> = (props) => {
         type: 'MAP_MOVE',
         location: props.view.location,
       });
-      update({
-        type: 'SET_ACCESS_TOKEN',
-        accessToken: props.accessToken,
-      });
     } else {
       geocoderService
         .forwardGeocode({
@@ -54,10 +50,6 @@ export const Container: React.FC<Props> = (props) => {
               },
             });
           }
-          update({
-            type: 'SET_ACCESS_TOKEN',
-            accessToken: props.accessToken,
-          });
         });
     }
 
@@ -93,7 +85,7 @@ export const Container: React.FC<Props> = (props) => {
   return (
     <Grid container>
       <InputForm />
-      <Map />
+      <Map accessToken={props.accessToken} />
       <ClearButton />
     </Grid>
   );

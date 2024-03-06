@@ -6,21 +6,24 @@ import mapboxgl from 'mapbox-gl'; // eslint-disable-line import/no-webpack-loade
 import styled from '@emotion/styled';
 import { useStandbyIndex } from '../uses/useStandbyIndex';
 
-export const Map: React.FC = () => {
+type Props = {
+  accessToken: string;
+};
+
+export const Map: React.FC<Props> = (props: Props) => {
   const update = useUpdate();
   const state = useTrackedState();
-  const index = useStandbyIndex();
 
   const mapContainer = useRef<any>(null);
 
   useEffect(() => {
-    if (!mapContainer.current || !state.accessToken) return;
+    if (!mapContainer.current || !props.accessToken) return;
     const newMap = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v12',
       center: [state.view.location.lng, state.view.location.lat],
       zoom: state.view.zoom,
-      accessToken: state.accessToken,
+      accessToken: props.accessToken,
     });
 
     newMap.on('click', (event: any) => {
@@ -58,7 +61,7 @@ export const Map: React.FC = () => {
       type: 'INITIALIZE_MAP',
       map: newMap,
     });
-  }, [mapContainer, state.accessToken]);
+  }, [mapContainer, props.accessToken]);
 
   useEffect(() => {
     if (state.markers.length === 0 && state.inputs.length > 0 && state.map) {

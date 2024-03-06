@@ -5,11 +5,6 @@ import { mapClick } from './mapClick';
 
 export const reducer = (state: GlobalState, action: Action): GlobalState => {
   switch (action.type) {
-    case 'SET_ACCESS_TOKEN':
-      return {
-        ...state,
-        accessToken: action.accessToken,
-      };
     case 'INITIALIZE_GEOCODER': {
       return {
         ...state,

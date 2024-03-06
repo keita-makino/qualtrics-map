@@ -8,7 +8,6 @@ import { MapiRequest } from '@mapbox/mapbox-sdk/lib/classes/mapi-request';
 import { reducer } from './reducer';
 
 export type GlobalState = {
-  accessToken?: string;
   inputs: Input[];
   map?: Map;
   view: View;
@@ -18,7 +17,6 @@ export type GlobalState = {
 };
 
 const initialState: GlobalState = {
-  accessToken: undefined,
   inputs: [],
   map: undefined,
   view: {
@@ -31,10 +29,6 @@ const initialState: GlobalState = {
 };
 
 export type Action =
-  | {
-      type: 'SET_ACCESS_TOKEN';
-      accessToken: string;
-    }
   | {
       type: 'ADD_INPUTS';
       inputs: Input[];
