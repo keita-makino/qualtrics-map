@@ -17,7 +17,7 @@
   "dependencies": {
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.0",
-    "@mapbox/mapbox-sdk": "^0.14.0",
+    "@mapbox/mapbox-sdk": "^0.16.0",
     "assert": "^2.1.0",
     "browserify-zlib": "^0.2.0",
     "buffer": "^6.0.3",
