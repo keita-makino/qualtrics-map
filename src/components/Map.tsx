@@ -21,8 +21,6 @@ export const Map: React.FC<Props> = (props: Props) => {
     const newMap = new mapboxgl.Map({
       container: mapContainer.current,
       style: 'mapbox://styles/mapbox/streets-v12',
-      center: [state.view.location.lng, state.view.location.lat],
-      zoom: state.view.zoom,
       accessToken: props.accessToken,
     });
 
@@ -62,6 +60,21 @@ export const Map: React.FC<Props> = (props: Props) => {
       map: newMap,
     });
   }, [mapContainer, props.accessToken]);
+
+  useEffect(() => {
+    if (state.map && state.view.zoom !== state.map.getZoom()) {
+      state.map.setZoom(state.view.zoom);
+    }
+  }, [state.view.zoom]);
+
+  useEffect(() => {
+    if (state.map && state.view.location) {
+      state.map.easeTo({
+        center: [state.view.location.lng, state.view.location.lat],
+        essential: true,
+      });
+    }
+  }, [state.view.location]);
 
   return <div ref={mapContainer} style={{ height: '60vh', width: '100%' }} />;
 };
