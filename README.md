@@ -93,15 +93,6 @@ Qualtrics.SurveyEngine.addOnReady(function () {
       },
       zoom: 13,
     },
-    defaultPins: [
-      {
-        location: {
-          lat: 50,
-          lng: -100,
-        },
-        editable: false,
-      },
-    ],
   });
 });
 
