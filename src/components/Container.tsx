@@ -7,15 +7,28 @@ import { useTrackedState, useUpdate } from '../store';
 import { InputForm } from './InputForm';
 import mbxGeocoder from '@mapbox/mapbox-sdk/services/geocoding';
 import { stat } from 'fs';
+import mapboxgl from 'mapbox-gl';
+import { createLabelHtml } from '../utils/createLabelHtml';
 
 type Props = {
   accessToken: string;
   directionContainer: HTMLElement;
-  view?: View;
+  options?: {
+    formLocation?: 'top' | 'bottom';
+    defaultPins?: [
+      {
+        location: { lat: number; lng: number };
+        editable: boolean;
+      },
+    ];
+    defaultView?: View;
+  };
 };
 
 export const Container: React.FC<Props> = (props) => {
+  const state = useTrackedState();
   const update = useUpdate();
+
   const getInitialLocation = () => {
     const region = (window as any).countryCode || 'US';
     const address = (window as any).postalCode
@@ -24,15 +37,24 @@ export const Container: React.FC<Props> = (props) => {
     return address;
   };
 
+  const isEditableAt = (index: number) => {
+    if (props.options?.defaultPins) {
+      return props.options.defaultPins[index] !== undefined
+        ? props.options.defaultPins[index].editable
+        : true;
+    }
+    return true;
+  };
+
   useEffect(() => {
     const geocoderService = mbxGeocoder({
       accessToken: props.accessToken,
     });
 
-    if (props.view?.location) {
+    if (props.options?.defaultView?.location) {
       update({
         type: 'MAP_MOVE',
-        location: props.view.location,
+        location: props.options.defaultView.location,
       });
     } else {
       geocoderService
@@ -66,16 +88,66 @@ export const Container: React.FC<Props> = (props) => {
             ? item.children[0].textContent
             : '',
           htmlElement: inputHTMLElements[index],
+          editable: isEditableAt(index),
         })),
       });
     }
-    if (props.view?.zoom) {
+    if (props.options?.defaultView?.zoom) {
       update({
         type: 'MAP_ZOOM',
-        zoom: props.view.zoom,
+        zoom: props.options.defaultView.zoom,
       });
     }
   }, []);
+
+  useEffect(() => {
+    if (state.symbols.length === 0 && state.inputs.length > 0 && state.map) {
+      update({
+        type: 'ADD_MARKERS',
+        symbols: state.inputs.map((_item, index) => ({
+          marker: new mapboxgl.Marker({
+            draggable: isEditableAt(index),
+            color: isEditableAt(index) ? '#3FB1CE' : '#CCCCCC',
+          })
+            .on('dragstart', (event: any) => {
+              update({
+                type: 'RESET_CLICKED_INDEX',
+              });
+            })
+            .on('dragend', (event: any) => {
+              update({
+                type: 'MOVE_MARKER_BY_DRAGGING',
+                location: {
+                  lat: event.target.getLngLat().lat,
+                  lng: event.target.getLngLat().lng,
+                },
+                index: index,
+              });
+            })
+            .setLngLat([0, 90])
+            .addTo(state.map!),
+          label: new mapboxgl.Marker({
+            element: createLabelHtml(state.inputs[index].label),
+            draggable: false,
+            offset: [0, -48],
+          })
+            .setLngLat([0, 90])
+            .addTo(state.map!),
+        })),
+      });
+    }
+  }, [state.symbols, state.inputs, state.map]);
+
+  useEffect(() => {
+    if (state.symbols.length > 0 && props.options?.defaultPins) {
+      props.options.defaultPins.forEach((pin) => {
+        update({
+          type: 'MAP_CLICK',
+          location: pin.location,
+        });
+      });
+    }
+  }, [state.symbols]);
 
   const inputHTMLElements =
     props.directionContainer.getElementsByTagName('input');
@@ -84,9 +156,40 @@ export const Container: React.FC<Props> = (props) => {
 
   return (
     <Grid container>
-      <InputForm />
-      <Map accessToken={props.accessToken} />
-      <ClearButton />
+      <Grid
+        item
+        container
+        xl={12}
+        lg={12}
+        md={12}
+        sm={12}
+        xs={12}
+        style={{
+          padding: '0 0 1rem 0',
+        }}
+        order={props.options?.formLocation === 'bottom' ? 2 : 0}
+      >
+        <InputForm />
+      </Grid>
+      <Grid
+        item
+        container
+        xl={12}
+        lg={12}
+        md={12}
+        sm={12}
+        xs={12}
+        order={props.options?.formLocation === 'bottom' ? 0 : 1}
+      >
+        <Map accessToken={props.accessToken} />
+      </Grid>
+      <Grid
+        container
+        justifyContent={'center'}
+        order={props.options?.formLocation === 'bottom' ? 1 : 2}
+      >
+        <ClearButton />
+      </Grid>
     </Grid>
   );
 };

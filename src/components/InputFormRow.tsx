@@ -217,6 +217,7 @@ export const InputRow: React.FC<InputRowProps> = (props: InputRowProps) => {
           onClose={() => setIsOpen(false)}
           inputValue={inputValue}
           value={value}
+          disabled={!state.inputs[props.index].editable}
           options={options.map((item) => item.address)}
           renderInput={(params) => (
             <TextField

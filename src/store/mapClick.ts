@@ -10,7 +10,14 @@ export const mapClick = (
 ) => {
   const newState = { ...state };
   const index = findStandbyIndex(newState);
-  newState.markers[index].setLngLat([action.location.lng, action.location.lat]);
+  newState.symbols[index].marker.setLngLat([
+    action.location.lng,
+    action.location.lat,
+  ]);
+  newState.symbols[index].label.setLngLat([
+    action.location.lng,
+    action.location.lat,
+  ]);
   newState.inputs[index].location = action.location;
   newState.view.location = action.location;
   newState.clickedIndex = index;

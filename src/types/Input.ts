@@ -8,6 +8,7 @@ export type Input = {
     lng: number;
     lat: number;
   };
+  editable?: boolean;
   textfieldInputValue?: string;
   textfieldValue?: string | null;
   geocoderSuggestions?: GeocodeResponse['features'];

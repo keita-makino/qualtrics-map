@@ -63,39 +63,5 @@ export const Map: React.FC<Props> = (props: Props) => {
     });
   }, [mapContainer, props.accessToken]);
 
-  useEffect(() => {
-    if (state.markers.length === 0 && state.inputs.length > 0 && state.map) {
-      update({
-        type: 'ADD_MARKERS',
-        markers: state.inputs.map((_item, index) =>
-          new mapboxgl.Marker({
-            draggable: true,
-          })
-            .on('dragstart', (event: any) => {
-              update({
-                type: 'RESET_CLICKED_INDEX',
-              });
-            })
-            .on('dragend', (event: any) => {
-              update({
-                type: 'MOVE_MARKER_BY_DRAGGING',
-                location: {
-                  lat: event.target.getLngLat().lat,
-                  lng: event.target.getLngLat().lng,
-                },
-                index: index,
-              });
-            })
-            .setLngLat([0, 90])
-            .addTo(state.map!),
-        ),
-      });
-    }
-  }, [state.markers, state.inputs, state.map]);
-
-  return (
-    <Grid item container xl={12} lg={12} md={12} sm={12} xs={12}>
-      <div ref={mapContainer} style={{ height: '60vh', width: '100%' }} />
-    </Grid>
-  );
+  return <div ref={mapContainer} style={{ height: '60vh', width: '100%' }} />;
 };
