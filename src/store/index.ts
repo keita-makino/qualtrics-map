@@ -2,7 +2,7 @@ import { useReducer, useState } from 'react';
 import { createContainer } from 'react-tracked';
 import { Input } from '../types/Input';
 import { View } from '../types/View';
-import { Map, Marker } from 'mapbox-gl';
+import mapboxgl, { Map, Marker, Popup } from 'mapbox-gl';
 import { GeocodeService } from '@mapbox/mapbox-sdk/services/geocoding';
 import { MapiRequest } from '@mapbox/mapbox-sdk/lib/classes/mapi-request';
 import { reducer } from './reducer';
@@ -11,7 +11,7 @@ export type GlobalState = {
   inputs: Input[];
   map?: Map;
   view: View;
-  markers: mapboxgl.Marker[];
+  symbols: { marker: mapboxgl.Marker; label: mapboxgl.Marker }[];
   clickedIndex?: number;
   geocoder?: GeocodeService;
 };
@@ -23,7 +23,7 @@ const initialState: GlobalState = {
     location: { lat: 38.540604, lng: -121.766941 },
     zoom: 13.5,
   },
-  markers: [],
+  symbols: [],
   clickedIndex: undefined,
   geocoder: undefined,
 };
@@ -75,11 +75,10 @@ export type Action =
     }
   | {
       type: 'ADD_MARKERS';
-      markers: mapboxgl.Marker[];
+      symbols: { marker: mapboxgl.Marker; label: mapboxgl.Marker }[];
     }
   | {
       type: 'MOVE_MARKER';
-
       location: { lat: number; lng: number };
       index: number;
     }
@@ -101,6 +100,5 @@ export type Action =
 
 const useGlobalState = () => useReducer(reducer, initialState);
 
-export const { Provider, useTrackedState, useUpdate } = createContainer(
-  useGlobalState
-);
+export const { Provider, useTrackedState, useUpdate } =
+  createContainer(useGlobalState);

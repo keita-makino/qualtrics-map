@@ -15,26 +15,24 @@ export const ClearButton: React.FC<ClearButtonProps> = (
   `;
 
   return (
-    <Grid container justifyContent={'center'}>
-      <Grid
-        item
-        container
-        xl={6}
-        lg={6}
-        md={6}
-        sm={6}
-        xs={6}
-        justifyContent={'center'}
-        style={{ position: 'relative', top: '-4rem' }}
+    <Grid
+      item
+      container
+      xl={6}
+      lg={6}
+      md={6}
+      sm={6}
+      xs={6}
+      justifyContent={'center'}
+      style={{ position: 'relative', top: '-4rem' }}
+    >
+      <StyledButton
+        variant={'contained'}
+        color={'primary'}
+        onClick={() => update({ type: 'CLEAR_INPUT' })}
       >
-        <StyledButton
-          variant={'contained'}
-          color={'primary'}
-          onClick={() => update({ type: 'CLEAR_INPUT' })}
-        >
-          <Typography variant={'button'}>Clear Pin(s)</Typography>
-        </StyledButton>
-      </Grid>
+        <Typography variant={'button'}>Clear Pin(s)</Typography>
+      </StyledButton>
     </Grid>
   );
 };

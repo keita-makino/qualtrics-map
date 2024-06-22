@@ -19,7 +19,7 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
     case 'ADD_MARKERS':
       return {
         ...state,
-        markers: [...state.markers, ...action.markers],
+        symbols: [...state.symbols, ...action.symbols],
       };
     case 'MAP_CLICK':
       return mapClick({ ...state }, action);
@@ -52,7 +52,11 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       return editInput({ ...state }, action.input, action.index);
     case 'MOVE_MARKER': {
       const newState = { ...state };
-      newState.markers[action.index].setLngLat([
+      newState.symbols[action.index].marker.setLngLat([
+        action.location.lng,
+        action.location.lat,
+      ]);
+      newState.symbols[action.index].label.setLngLat([
         action.location.lng,
         action.location.lat,
       ]);
@@ -65,7 +69,11 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
       };
     case 'MOVE_MARKER_BY_DRAGGING': {
       const newState = { ...state };
-      newState.markers[action.index].setLngLat([
+      newState.symbols[action.index].marker.setLngLat([
+        action.location.lng,
+        action.location.lat,
+      ]);
+      newState.symbols[action.index].label.setLngLat([
         action.location.lng,
         action.location.lat,
       ]);
@@ -84,9 +92,18 @@ export const reducer = (state: GlobalState, action: Action): GlobalState => {
           return {
             label: item.label,
             htmlElement: item.htmlElement,
+            editable: item.editable,
           };
         }),
-        markers: state.markers.map((item) => item.setLngLat([0, 90])),
+        symbols: state.symbols.map((item, index) =>
+          state.inputs[index].editable
+            ? {
+                ...item,
+                marker: item.marker.setLngLat([0, 90]),
+                label: item.label.setLngLat([0, 90]),
+              }
+            : item,
+        ),
       };
     case 'EDIT_GEOCODE_SUGGESTIONS': {
       const newState = { ...state };
@@ -114,6 +131,6 @@ export const moveMarker = (
   index: number,
 ) => {
   const newState = { ...state };
-  newState.markers[index] = marker;
+  newState.symbols[index].marker = marker;
   return newState;
 };

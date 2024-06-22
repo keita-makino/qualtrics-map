@@ -6,9 +6,18 @@ import { Provider } from './store';
 const mapRender = (
   accessToken: string,
   target: HTMLElement,
-  defaultView?: {
-    location: { lat: number; lng: number };
-    zoom: number;
+  options?: {
+    formLocation?: 'top' | 'bottom';
+    defaultPins?: [
+      {
+        location: { lat: number; lng: number };
+        editable: boolean;
+      },
+    ];
+    defaultView?: {
+      location: { lat: number; lng: number };
+      zoom: number;
+    };
   },
 ) => {
   const container = document.createElement('div');
@@ -25,7 +34,7 @@ const mapRender = (
       <Container
         accessToken={accessToken}
         directionContainer={directionContainer}
-        view={defaultView}
+        options={options}
       />
     </Provider>,
     document.getElementById(`MapContainer${target.id}`),
