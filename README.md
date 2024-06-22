@@ -8,7 +8,7 @@ Qualtrics recently introduced a new "Simple" layout under the Look and feel sett
 
 The way to set the default center has been changed on v3.1.0. Please refer to the installation manual below if you have migrated from an earlier version.
 
-Version 3.1.0 also introduces a new feature of default pins. You can set the editable property for each of the pins.
+Version 3.1.0 also introduces new features of form location and default pins. You can set the editable property for each of the pins.
 
 ## Breaking change on v3.0.0
 
@@ -93,6 +93,13 @@ Qualtrics.SurveyEngine.addOnReady(function () {
       },
       zoom: 13,
     },
+  });
+});
+
+// If you need to have the map over the form
+Qualtrics.SurveyEngine.addOnReady(function () {
+  mapRender(accessToken, document.getElementById('QID1'), {
+    formLocation: 'bottom',
   });
 });
 
