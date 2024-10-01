@@ -28,6 +28,7 @@ type Props = {
 export const Container: React.FC<Props> = (props) => {
   const state = useTrackedState();
   const update = useUpdate();
+  console.log(props);
 
   const getInitialLocation = () => {
     const region = (window as any).countryCode || 'US';
@@ -50,8 +51,6 @@ export const Container: React.FC<Props> = (props) => {
     const geocoderService = mbxGeocoder({
       accessToken: props.accessToken,
     });
-
-    console.log(props);
 
     if (props.options?.defaultView?.location) {
       update({
