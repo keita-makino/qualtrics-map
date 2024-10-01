@@ -51,6 +51,8 @@ export const Container: React.FC<Props> = (props) => {
       accessToken: props.accessToken,
     });
 
+    console.log(props);
+
     if (props.options?.defaultView?.location) {
       update({
         type: 'MAP_MOVE',
